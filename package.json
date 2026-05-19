@@ -9,22 +9,22 @@
     "server": "node index.js",
     "dev:server": "nodemon index.js"
   },
-"dependencies": {
-  "axios": "^1.7.2",
-  "cors": "^2.8.5",
-  "dotenv": "^16.4.5",
-  "express": "^4.19.2",
-  "mongoose": "^8.5.1",
-  "react": "^18.3.1",
-  "react-dom": "^18.3.1",
-  "socket.io": "^4.7.5",
-  "socket.io-client": "^4.7.5",
-  "vite": "^5.4.21"
-},
-"devDependencies": {
-  "@types/react": "^18.3.3",
-  "@types/react-dom": "^18.3.0",
-  "@vitejs/plugin-react": "^4.3.1",
-  "nodemon": "^3.1.4"
-}
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "axios": "^1.7.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.5.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
+    "vite": "^5.4.21"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "nodemon": "^3.1.4"
+  }
 }
