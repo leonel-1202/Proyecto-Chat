@@ -47,10 +47,11 @@ app.use('/api/status',        statusRouter);
 app.use('/api/conversations', conversationsRouter);
 
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'dist')));
-  app.get('*', (_req, res) =>
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'))
-  );
+  app.use(express.static(path.join(__dirname, '../dist')));
+
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+  });
 }
 
 const connectedUsers = new Map();
