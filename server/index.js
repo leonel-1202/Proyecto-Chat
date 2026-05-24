@@ -66,8 +66,13 @@ async function obtenerRespuestaInteligente(mensajeUsuario) {
       return "Error interno: Configuración de IA ausente.";
     }
 
-    const aiClient = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY, { apiVersion: 'v1' });
-    const model = aiClient.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const aiClient = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+    
+    const model = aiClient.getGenerativeModel(
+      { model: "gemini-1.5-flash" },
+      { apiVersion: "v1" }
+    );
+    
     const result = await model.generateContent(mensajeUsuario);
     const response = await result.response;
     
