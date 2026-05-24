@@ -88,10 +88,12 @@ const connectedUsers = new Map();
 io.on('connection', (socket) => {
   console.log('🟢 Cliente conectado:', socket.id);
 
+  // === BLOQUE CORREGIDO: MANEJO DE MENSAJES Y RESPUESTAS DEL BOT ===
   socket.on('send_message', async (data) => {
     try {
       const horaActual = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
       
+      // Validamos rigurosamente si el mensaje entrante fue generado por el Bot
       const esBot = data.sender === '+570000000000';
 
       const saved = await Message.create({
@@ -109,8 +111,10 @@ io.on('connection', (socket) => {
         { $set: { lastMessage: data.text || '📎', lastTime: saved.time || horaActual, updatedAt: new Date() } }
       );
 
+      // Enviamos a la sala correspondiente asegurando el prefijo dinámico
       io.to(`chat_${data.chatId}`).emit('new_message', saved);
 
+      // Disparar la llamada a Gemini solo si el mensaje va dirigido al bot y no proviene de la propia IA
       if (data.chatId === 'bot_nexus' && !esBot) {
         const respuestaIA = await obtenerRespuestaInteligente(data.text);
         
@@ -122,6 +126,7 @@ io.on('connection', (socket) => {
           status: 'read'
         });
         
+        // UNIFICADO: Emitimos exactamente a la sala 'chat_bot_nexus'
         io.to(`chat_bot_nexus`).emit('new_message', respuestaGuardada);
       }
     } catch (err) {
