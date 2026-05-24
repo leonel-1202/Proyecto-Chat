@@ -60,6 +60,7 @@ const Ico = {
   Search:  () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
   Plus:    () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
   Gif:     () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M10 9H7a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h3"/><path d="M10 12H8"/><path d="M14 9v6"/><path d="M17 9h-1.5a1.5 1.5 0 0 0 0 3H17a1.5 1.5 0 0 1 0 3h-1.5"/></svg>,
+  Back:    () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>,
 };
 
 // ── Sub-componentes ───────────────────────────────────────────────────────────
@@ -128,7 +129,7 @@ function SearchBar({ messages, onClose, onJump }) {
 
 function EmptyState({ onNew }) {
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, color: "var(--text-muted)" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, color: "var(--text-muted)", padding: "20px" }}>
       <div style={{ width: 72, height: 72, background: "var(--bg-sidebar)", borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--border)" }}>
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -223,25 +224,21 @@ export default function ChatApp() {
         if (c.id !== msg.chatId) return c;
         const msgs = [...c.messages];
 
-        // 🌟 LÓGICA DE DEDUPLICACIÓN REFORZADA 🌟
         if (msg.sender === miNumero) {
-          // Buscamos si ya existe el mensaje optimista en el feed para actualizarlo
           let idx = msgs.findIndex((m) => 
             !m._id && 
             (m.id === msg.id || (m.text === msg.text && m.sender === miNumero))
           );
           
           if (idx !== -1) {
-            msgs[idx] = msg; // Reemplazamos el optimista temporal por el real del backend con base de datos _id
+            msgs[idx] = msg;
             return { ...c, messages: msgs };
           }
           
-          // Si el mensaje real ya tiene _id y de alguna forma ya existe en el array, ignorarlo para no duplicar
           if (msgs.some((m) => m._id === msg._id)) {
             return c;
           }
         } else {
-          // Evitar duplicar mensajes entrantes de otros usuarios
           if (msgs.some((m) => m._id === msg._id)) return c;
         }
 
@@ -282,7 +279,7 @@ export default function ChatApp() {
       "user_online","user_offline","new_conversation","message_edited","message_deleted"]
         .forEach((ev) => socket.off(ev));
     };
-  }, [usuario.numero, usuario.nombre]);
+  }, [usuario.numero, usuario.nombre, selectedId]);
 
   useEffect(() => {
     setChats((prev) => prev.map((c) => ({ ...c, online: c.chatId === BOT_CHAT_ID ? true : onlineUsers.has(c.phone) })));
@@ -466,12 +463,17 @@ export default function ChatApp() {
         </div>
       </aside>
 
-      {/* ── CHAT AREA ── */}
+      {/* ── CHAT AREA (Con clase dinámica para móviles) ── */}
       {!chat ? (
-        <main className="chat"><EmptyState onNew={() => setShowAddModal(true)} /></main>
+        <main className={`chat ${selectedId ? "open" : ""}`}><EmptyState onNew={() => setShowAddModal(true)} /></main>
       ) : (
-        <main className="chat" style={{ position: "relative" }}>
+        <main className={`chat ${selectedId ? "open" : ""}`} style={{ position: "relative" }}>
           <div className="chat-header">
+            {/* Botón de regresar exclusivo para móviles */}
+            <button className="icon-btn btn-back" onClick={() => setSelectedId(null)} title="Volver a chats">
+              <Ico.Back />
+            </button>
+            
             <Avatar initials={chat.initials} online={chat.online || getStatus(chat.phone)?.online} isGroup={chat.isGroup} />
             <div className="chat-header-info">
               <div className="chat-header-name">{chat.name}</div>

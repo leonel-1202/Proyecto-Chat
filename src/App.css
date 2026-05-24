@@ -484,8 +484,31 @@ body {
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;                /* Un poquito más de espacio entre elementos */
+  overflow-x: auto;         /* ◄ Activa el scroll horizontal de forma automática */
+  white-space: nowrap;      /* ◄ Evita que los círculos intenten bajarse a otra línea */
+  scrollbar-width: none;    /* ◄ Oculta la barra de scroll molesta en Firefox */
   animation: fadeUp 0.15s ease-out both;
+}
+
+/* Oculta la barra de scroll en navegadores Chrome, Safari y Edge para mantener el diseño limpio */
+.theme-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.theme-dots {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;           /* ◄ CRÍTICO: Evita que el contenedor de puntos se aplaste */
+}
+
+.theme-dot {
+  width: 20px; height: 20px; /* Los agrandé un poquito (de 16px a 20px) para que en celular sea más fácil tocarlos */
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.15s, border-color 0.15s;
+  flex-shrink: 0;           /* ◄ CRÍTICO: Obliga a cada círculo a mantener su forma circular perfecta */
 }
 
 .theme-strip-label {
@@ -810,4 +833,57 @@ body {
 
 .input-bar {
   position: relative;
+}
+
+/* ==========================================================================
+   📱 RESPONSIVE PARA DISPOSITIVOS MÓVILES (Pantallas menores a 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  
+  /* Cambiamos el Grid de dos columnas a una sola columna apilada */
+  .app {
+    grid-template-columns: 1fr;
+    position: relative;
+  }
+
+  /* La barra lateral ocupará todo el ancho de la pantalla */
+  .sidebar {
+    width: 100%;
+    height: 100dvh;
+  }
+
+  /* El chat se superpone cubriendo toda la pantalla cuando está activo */
+  .chat {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100dvh;
+    z-index: 10;
+    display: none; /* Por defecto oculto si no hay chat seleccionado */
+  }
+
+  /* 💡 CLASE DINÁMICA: Cuando haya un chat seleccionado, le agregas la clase .open al contenedor .chat */
+  .chat.open {
+    display: flex; 
+    animation: fadeUp 0.2s ease-out;
+  }
+
+  /* Hacemos las burbujas un poco más anchas en celular para aprovechar el espacio */
+  .bubble-wrap {
+    max-width: 85%;
+  }
+}
+
+/* Por defecto en computadoras, el botón de atrás está escondido */
+.btn-back {
+  display: none !important;
+}
+
+/* Solo se activará cuando la pantalla sea pequeña (móviles) */
+@media (max-width: 768px) {
+  .btn-back {
+    display: flex !important;
+    margin-right: 8px;
+  }
 }
