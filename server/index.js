@@ -66,6 +66,38 @@ io.on('connection', (socket) => {
     console.log(`📱 Registrado: ${phone}`);
   });
 
+  // ── PEGA ESTOS DOS BLOQUES dentro del io.on('connection', ...) en tu index.js ──
+// Después del bloque de 'mark_read' y antes del de 'react_message'
+
+  socket.on('edit_message', async ({ messageId, text, chatId, groupId }) => {
+    try {
+      const msg = await Message.findByIdAndUpdate(
+        messageId,
+        { $set: { text, edited: true } },
+        { new: true }
+      );
+      if (!msg) return;
+      const room = chatId ? `chat_${chatId}` : `group_${groupId}`;
+      io.to(room).emit('message_edited', { messageId, text, edited: true });
+    } catch (err) {
+      console.error('Error edit_message:', err);
+    }
+  });
+
+  socket.on('delete_message', async ({ messageId, chatId, groupId, forEveryone }) => {
+    try {
+      const update = forEveryone
+        ? { $set: { deleted: true, text: '', media: null } }
+        : { $set: { deleted: true } };
+
+      await Message.findByIdAndUpdate(messageId, update);
+      const room = chatId ? `chat_${chatId}` : `group_${groupId}`;
+      io.to(room).emit('message_deleted', { messageId, forEveryone });
+    } catch (err) {
+      console.error('Error delete_message:', err);
+    }
+  });
+
   socket.on('join_chat',  (chatId)  => socket.join(`chat_${chatId}`));
   socket.on('join_group', (groupId) => socket.join(`group_${groupId}`));
 
@@ -210,7 +242,8 @@ io.on('connection', (socket) => {
     const phone = socket.data.phone;
     if (phone) {
       connectedUsers.delete(phone);
-      io.emit('user_offline', { phone });
+      // Enviar timestamp de última vez visto
+      io.emit('user_offline', { phone, lastSeen: new Date().toISOString() });
       console.log(`🔴 Desconectado: ${phone}`);
     }
   });

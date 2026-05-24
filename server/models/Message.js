@@ -20,6 +20,8 @@ const messageSchema = new mongoose.Schema(
     status:    { type: String, enum: ['sent', 'delivered', 'read'], default: 'sent' },
     readBy:    [{ type: String }],
     reactions: { type: [reactionSchema], default: [] },
+    edited:    { type: Boolean, default: false },    // ← nuevo
+    deleted:   { type: Boolean, default: false },    // ← nuevo
     time: {
       type: String,
       default: () =>

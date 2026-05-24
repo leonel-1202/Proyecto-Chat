@@ -1,15 +1,20 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "./Auth-Context";
+import { formatPhoneInput, normalizePhone } from "./utils/phoneUtils";
 
 const COUNTRY_CODES = [
-  { code: "+57", flag: "🇨🇴", name: "Colombia" },
-  { code: "+1",  flag: "🇺🇸", name: "Estados Unidos" },
-  { code: "+52", flag: "🇲🇽", name: "México" },
-  { code: "+54", flag: "🇦🇷", name: "Argentina" },
-  { code: "+56", flag: "🇨🇱", name: "Chile" },
-  { code: "+51", flag: "🇵🇪", name: "Perú" },
-  { code: "+58", flag: "🇻🇪", name: "Venezuela" },
-  { code: "+34", flag: "🇪🇸", name: "España" },
+  { code: "+57", flag: "🇨🇴", name: "Colombia",       digits: 10 },
+  { code: "+1",  flag: "🇺🇸", name: "Estados Unidos", digits: 10 },
+  { code: "+52", flag: "🇲🇽", name: "México",         digits: 10 },
+  { code: "+54", flag: "🇦🇷", name: "Argentina",      digits: 10 },
+  { code: "+56", flag: "🇨🇱", name: "Chile",          digits: 9  },
+  { code: "+51", flag: "🇵🇪", name: "Perú",           digits: 9  },
+  { code: "+58", flag: "🇻🇪", name: "Venezuela",      digits: 10 },
+  { code: "+34", flag: "🇪🇸", name: "España",         digits: 9  },
+  { code: "+55", flag: "🇧🇷", name: "Brasil",         digits: 11 },
+  { code: "+44", flag: "🇬🇧", name: "Reino Unido",    digits: 10 },
+  { code: "+49", flag: "🇩🇪", name: "Alemania",       digits: 11 },
+  { code: "+33", flag: "🇫🇷", name: "Francia",        digits: 9  },
 ];
 
 const s = {
@@ -61,13 +66,17 @@ const s = {
 };
 
 function PhoneInput({ onSubmit }) {
-  const [country, setCountry] = useState(COUNTRY_CODES[0]);
-  const [phone, setPhone] = useState("");
-  const [open, setOpen] = useState(false);
+  const [country,    setCountry]    = useState(COUNTRY_CODES[0]);
+  const [rawDisplay, setRawDisplay] = useState("");  // lo que se muestra en el input
+  const [normalized, setNormalized] = useState("");  // número completo normalizado
+  const [open,       setOpen]       = useState(false);
   const dropRef = useRef(null);
 
-  const canSubmit = phone.replace(/\D/g, "").length >= 7;
+  const minDigits = country.digits || 7;
+  const digits    = rawDisplay.replace(/\D/g, "");
+  const canSubmit = digits.length >= minDigits;
 
+  // Cerrar dropdown al click fuera
   useEffect(() => {
     const handler = (e) => {
       if (!dropRef.current?.contains(e.target)) setOpen(false);
@@ -75,6 +84,27 @@ function PhoneInput({ onSubmit }) {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // Resetear al cambiar de país
+  const handleCountryChange = (c) => {
+    setCountry(c);
+    setRawDisplay("");
+    setNormalized("");
+    setOpen(false);
+  };
+
+  // Formateo automático mientras escribe
+  const handleChange = (e) => {
+    const input = e.target.value;
+    const { formatted, normalized: norm } = formatPhoneInput(input, country.code);
+    setRawDisplay(formatted);
+    setNormalized(norm);
+  };
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    onSubmit(normalized || normalizePhone(country.code + rawDisplay));
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
@@ -84,6 +114,7 @@ function PhoneInput({ onSubmit }) {
       </div>
 
       <div style={{ display: "flex", gap: 10 }}>
+        {/* Selector de país */}
         <div ref={dropRef} style={{ position: "relative" }}>
           <button
             onClick={() => setOpen((o) => !o)}
@@ -110,14 +141,15 @@ function PhoneInput({ onSubmit }) {
             <div style={{
               position: "absolute", top: "calc(100% + 8px)", left: 0, zIndex: 100,
               background: "var(--bg-sidebar)", border: "1px solid var(--border-strong)",
-              borderRadius: 14, overflow: "hidden", minWidth: 200,
+              borderRadius: 14, overflow: "hidden", minWidth: 220,
               boxShadow: "0 16px 40px rgba(0,0,0,0.5)",
               animation: "fadeUp 0.12s ease-out both",
+              maxHeight: 280, overflowY: "auto",
             }}>
               {COUNTRY_CODES.map((c) => (
                 <div
                   key={c.code + c.name}
-                  onClick={() => { setCountry(c); setOpen(false); }}
+                  onClick={() => handleCountryChange(c)}
                   style={{
                     padding: "10px 16px", display: "flex", alignItems: "center",
                     gap: 10, cursor: "pointer", fontSize: "0.85rem",
@@ -138,22 +170,31 @@ function PhoneInput({ onSubmit }) {
           )}
         </div>
 
+        {/* Input del número */}
         <input
           type="tel"
-          placeholder="300 123 4567"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value.replace(/[^\d\s\-()+]/g, ""))}
+          placeholder={country.code === "+57" ? "300 1234567" :
+                      country.code === "+1"  ? "300 123 4567" : "Número"}
+          value={rawDisplay}
+          onChange={handleChange}
           autoFocus
           style={{ ...s.input, flex: 1 }}
           onFocus={(e) => e.target.style.borderColor = "var(--accent-dim)"}
-          onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"}
-          onKeyDown={(e) => e.key === "Enter" && canSubmit && onSubmit(country.code + phone)}
+          onBlur={(e)  => e.target.style.borderColor = "var(--border-strong)"}
+          onKeyDown={(e) => e.key === "Enter" && canSubmit && handleSubmit()}
         />
       </div>
 
+      {/* Preview del número normalizado */}
+      {normalized && (
+        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: -16, paddingLeft: 4 }}>
+          Tu número: <span style={{ color: "var(--accent-dim)", fontFamily: "monospace" }}>{normalized}</span>
+        </div>
+      )}
+
       <button
         style={s.btn(canSubmit)}
-        onClick={() => canSubmit && onSubmit(country.code + phone)}
+        onClick={handleSubmit}
         disabled={!canSubmit}
       >
         Continuar
@@ -193,7 +234,7 @@ function NameInput({ onComplete, onBack }) {
         autoFocus
         style={s.input}
         onFocus={(e) => e.target.style.borderColor = "var(--accent-dim)"}
-        onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"}
+        onBlur={(e)  => e.target.style.borderColor = "var(--border-strong)"}
         onKeyDown={(e) => e.key === "Enter" && canSubmit && onComplete(nombre.trim())}
       />
 
@@ -233,7 +274,7 @@ function NameInput({ onComplete, onBack }) {
 
 export default function Login() {
   const { login } = useAuth();
-  const [step, setStep] = useState("phone");
+  const [step,        setStep]        = useState("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const handlePhone = (fullNumber) => {
@@ -276,10 +317,11 @@ export default function Login() {
             </svg>
           </div>
           <span style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", fontWeight: 700, color: "var(--text-primary)" }}>
-            Nexus<span style={{ color: "var(--accent)" }}></span>
+            From<span style={{ color: "var(--accent)" }}>Chat</span>
           </span>
         </div>
 
+        {/* Barra de progreso */}
         <div style={{ display: "flex", gap: 6, marginBottom: 36 }}>
           {STEPS.map((st, i) => (
             <div key={st} style={{
