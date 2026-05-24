@@ -118,7 +118,7 @@ io.on('connection', (socket) => {
             ],
           },
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
       
       socket.join(`chat_${chatId}`);
