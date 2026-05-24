@@ -25,7 +25,7 @@ const app    = express();
 const server = http.createServer(app);
 
 const ALLOWED_ORIGINS = [
-  'http://localhost:5173',
+  'https://nexus-cfkp.onrender.com',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
