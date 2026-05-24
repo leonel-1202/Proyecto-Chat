@@ -57,7 +57,7 @@ if (process.env.NODE_ENV === 'production') {
 
 const connectedUsers = new Map();
 
-const { OpenAI } = require('openai');
+import { OpenAI } from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -78,11 +78,45 @@ async function obtenerRespuestaInteligente(mensajeUsuario) {
 io.on('connection', (socket) => {
   console.log('🟢 Cliente conectado:', socket.id);
 
-  socket.on('send_message', async (data) => {
-    await guardarMensaje(data);
-    const respuestaIA = await obtenerRespuestaInteligente(data.texto);
-    io.emit('receive_message', { usuario: 'Nexus-IA', texto: respuestaIA });
-});
+socket.on('send_message', async (data) => {
+    try {
+      const horaActual = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+      
+      const saved = await Message.create({
+        chatId:  data.chatId,
+        type:    'out',
+        text:    data.text    || '',
+        media:   data.media   || null,
+        sender:  data.sender,
+        replyTo: data.replyTo || null,
+        status:  'sent',
+      });
+
+      await Conversation.findOneAndUpdate(
+        { chatId: data.chatId },
+        { $set: { lastMessage: data.text || '📎', lastTime: saved.time || horaActual, updatedAt: new Date() } }
+      );
+
+      io.to(`chat_${data.chatId}`).emit('new_message', saved);
+
+      if (data.chatId === 'bot_nexus') {
+        const respuestaIA = await obtenerRespuestaInteligente(data.text);
+        
+        const respuestaGuardada = await Message.create({
+          chatId: 'bot_nexus',
+          type: 'in',
+          text: respuestaIA,
+          sender: '+570000000000',
+          status: 'read'
+        });
+        
+        io.to(`chat_bot_nexus`).emit('new_message', respuestaGuardada);
+      }
+    } catch (err) {
+      console.error('Error send_message:', err);
+      socket.emit('error', { msg: 'No se pudo enviar el mensaje' });
+    }
+  });
 
   socket.on('register', (phone) => {
     connectedUsers.set(phone, socket.id);
