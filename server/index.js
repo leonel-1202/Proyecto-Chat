@@ -16,9 +16,9 @@ import Group        from './models/Group.js';
 import Status       from './models/Status.js';
 import Conversation from './models/Conversation.js';
 
-import messagesRouter                       from './routes/messages.js';
-import groupsRouter                         from './routes/groups.js';
-import statusRouter                         from './routes/status.js';
+import messagesRouter      from './routes/messages.js';
+import groupsRouter        from './routes/groups.js';
+import statusRouter        from './routes/status.js';
 import conversationsRouter, { makeChatId } from './routes/conversations.js';
 
 const app    = express();
@@ -36,26 +36,32 @@ const io = new Server(server, {
 app.use(cors({ origin: ALLOWED_ORIGINS }));
 app.use(express.json({ limit: '15mb' }));
 
+// Conexión Segura a MongoDB
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB conectado'))
   .catch((err) => console.error('❌ MongoDB error:', err));
 
+// ── RUTAS DE LA API (Siempre van primero) ──────────────────────────────────
 app.use('/api/messages',      messagesRouter);
 app.use('/api/groups',        groupsRouter);
 app.use('/api/status',        statusRouter);
 app.use('/api/conversations', conversationsRouter);
 
+// ── SERVIR FRONTEND EN PRODUCCIÓN (Siempre va después de las rutas) ─────────
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist')));
-
-  app.use((req, res) => {
+  
+  // Solo atrapa lo que no sea una ruta de la API /api
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
     res.sendFile(path.join(__dirname, '../dist/index.html'));
   });
 }
 
 const connectedUsers = new Map();
 
+// ── LÓGICA DE SOCKET.IO ─────────────────────────────────────────────────────
 io.on('connection', (socket) => {
   console.log('🟢 Cliente conectado:', socket.id);
 
@@ -65,9 +71,6 @@ io.on('connection', (socket) => {
     io.emit('user_online', { phone });
     console.log(`📱 Registrado: ${phone}`);
   });
-
-  // ── PEGA ESTOS DOS BLOQUES dentro del io.on('connection', ...) en tu index.js ──
-// Después del bloque de 'mark_read' y antes del de 'react_message'
 
   socket.on('edit_message', async ({ messageId, text, chatId, groupId }) => {
     try {
@@ -117,6 +120,7 @@ io.on('connection', (socket) => {
         },
         { upsert: true, new: true }
       );
+      
       socket.join(`chat_${chatId}`);
       socket.emit('conversation_ready', conv);
 
@@ -130,12 +134,14 @@ io.on('connection', (socket) => {
       }
     } catch (err) {
       console.error('Error create_conversation:', err);
-      socket.emit('error', { msg: 'No se pudo crear la conversación' });
+      socket.emit('error', { msg: 'No se pudo crear la conversación en el servidor' });
     }
   });
 
   socket.on('send_message', async (data) => {
     try {
+      const horaActual = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+      
       const saved = await Message.create({
         chatId:  data.chatId,
         type:    data.type,
@@ -145,10 +151,13 @@ io.on('connection', (socket) => {
         replyTo: data.replyTo || null,
         status:  'sent',
       });
+
       await Conversation.findOneAndUpdate(
         { chatId: data.chatId },
-        { $set: { lastMessage: data.text || '📎', lastTime: saved.time, updatedAt: new Date() } }
+        { $set: { lastMessage: data.text || '📎', lastTime: saved.time || horaActual, updatedAt: new Date() } }
       );
+
+      // Corrección de duplicados: mandamos a la sala completa
       io.to(`chat_${data.chatId}`).emit('new_message', saved);
     } catch (err) {
       console.error('Error send_message:', err);
@@ -158,6 +167,8 @@ io.on('connection', (socket) => {
 
   socket.on('send_media_message', async (data) => {
     try {
+      const horaActual = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+
       const saved = await Message.create({
         chatId:  data.chatId,
         type:    data.type,
@@ -167,10 +178,12 @@ io.on('connection', (socket) => {
         replyTo: data.replyTo || null,
         status:  'sent',
       });
+
       await Conversation.findOneAndUpdate(
         { chatId: data.chatId },
-        { $set: { lastMessage: '📎 Archivo', lastTime: saved.time, updatedAt: new Date() } }
+        { $set: { lastMessage: '📎 Archivo', lastTime: saved.time || horaActual, updatedAt: new Date() } }
       );
+
       io.to(`chat_${data.chatId}`).emit('new_message', saved);
     } catch (err) {
       console.error('Error send_media_message:', err);
@@ -198,19 +211,26 @@ io.on('connection', (socket) => {
 
   socket.on('mark_read', async ({ messageIds, chatId, groupId, phone }) => {
     try {
+      const idsValidos = messageIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+      if (idsValidos.length === 0) return;
+
       await Message.updateMany(
-        { _id: { $in: messageIds }, readBy: { $ne: phone } },
+        { _id: { $in: idsValidos }, readBy: { $ne: phone } },
         { $addToSet: { readBy: phone }, $set: { status: 'read' } }
       );
       const room = chatId ? `chat_${chatId}` : `group_${groupId}`;
-      io.to(room).emit('messages_read', { messageIds, phone });
-    } catch (err) { console.error('Error mark_read:', err); }
+      io.to(room).emit('messages_read', { messageIds: idsValidos, phone });
+    } catch (err) { 
+      console.error('Error mark_read:', err); 
+    }
   });
 
   socket.on('react_message', async ({ messageId, emoji, phone, chatId, groupId }) => {
     try {
+      if (!mongoose.Types.ObjectId.isValid(messageId)) return;
       const msg = await Message.findById(messageId);
       if (!msg) return;
+      
       const existing = msg.reactions.find((r) => r.emoji === emoji);
       if (existing) {
         if (existing.users.includes(phone)) {
@@ -233,6 +253,7 @@ io.on('connection', (socket) => {
     const room = chatId ? `chat_${chatId}` : `group_${groupId}`;
     socket.to(room).emit('typing', { phone, nombre });
   });
+  
   socket.on('stop_typing', ({ chatId, groupId, phone }) => {
     const room = chatId ? `chat_${chatId}` : `group_${groupId}`;
     socket.to(room).emit('stop_typing', { phone });
@@ -242,7 +263,6 @@ io.on('connection', (socket) => {
     const phone = socket.data.phone;
     if (phone) {
       connectedUsers.delete(phone);
-      // Enviar timestamp de última vez visto
       io.emit('user_offline', { phone, lastSeen: new Date().toISOString() });
       console.log(`🔴 Desconectado: ${phone}`);
     }
@@ -250,4 +270,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 Servidor en http://localhost:${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
