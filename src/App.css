@@ -887,3 +887,19 @@ body {
     margin-right: 8px;
   }
 }
+
+/* ── AGREGAR al final de tu App.css ────────────────────────────────────────── */
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* Badge en sidebar-user-bar al hacer clic → abre perfil */
+.sidebar-user-bar {
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.sidebar-user-bar:hover {
+  background: var(--bg-hover);
+}

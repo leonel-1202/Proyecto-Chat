@@ -4,6 +4,7 @@ import { useTheme } from "./ThemeContext";
 import { useNotifications } from "./hooks/useNotifications";
 import { useLastSeen, formatLastSeen } from "./hooks/useLastSeen";
 import { useCloudinary, MAX_SIZE_MB } from "./hooks/useCloudinary";
+import { useBadge } from "./hooks/useBadge";
 import ChatItem from "./componentes/ChatItem";
 import Bubble from "./componentes/Bubble";
 import Avatar from "./componentes/Avatar";
@@ -12,9 +13,11 @@ import EmojiPickerPanel from "./componentes/EmojiPickerPanel";
 import AddContactModal from "./componentes/AddContactModal";
 import Stories from "./componentes/Stories";
 import UploadProgress from "./componentes/UploadProgress";
-import { getMensajes, getConversaciones } from "./api";
+import UserProfilePanel from "./componentes/UserProfilePanel";
+import { getMensajes, getConversaciones, clearChat } from "./api";
 import socket from "./socket";
 
+// ── Bot ───────────────────────────────────────────────────────────────────────
 const BOT_CHAT_ID  = "bot_nexus";
 const BOT_PHONE    = "+570000000000";
 const BOT_NAME     = "Nexus-IA 🤖";
@@ -31,7 +34,6 @@ const BOT_RESPONSES = [
 ];
 const getBotResponse = () => BOT_RESPONSES[Math.floor(Math.random() * BOT_RESPONSES.length)];
 
-function makeChatId(a, b) { return [a, b].sort().join("__"); }
 function nowTime() {
   return new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
 }
@@ -43,7 +45,9 @@ function convToChat(conv, myPhone) {
     id: conv.chatId, chatId: conv.chatId,
     name: other.nombre || other.phone || "Contacto",
     phone: other.phone, initials, online: false, isGroup: false,
-    messages: lastMsg ? [{ id: lastMsg._id, type: lastMsg.type, text: lastMsg.text, time: lastMsg.time, sender: lastMsg.sender }] : [],
+    messages: lastMsg
+      ? [{ id: lastMsg._id, type: lastMsg.type, text: lastMsg.text, time: lastMsg.time, sender: lastMsg.sender }]
+      : [],
     unread: 0,
   };
 }
@@ -60,8 +64,36 @@ const Ico = {
   Search:  () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
   Plus:    () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
   Gif:     () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M10 9H7a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h3"/><path d="M10 12H8"/><path d="M14 9v6"/><path d="M17 9h-1.5a1.5 1.5 0 0 0 0 3H17a1.5 1.5 0 0 1 0 3h-1.5"/></svg>,
-  Back:    () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>,
+  Back:    () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>,
+  User:    () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  Trash:   () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>,
 };
+
+// ── Menú "···" del header ────────────────────────────────────────────────────
+function ChatMenu({ onClear, onClose }) {
+  const ref = useRef();
+  useEffect(() => {
+    const h = (e) => { if (!ref.current?.contains(e.target)) onClose(); };
+    setTimeout(() => document.addEventListener("mousedown", h), 50);
+    return () => document.removeEventListener("mousedown", h);
+  }, [onClose]);
+
+  return (
+    <div ref={ref} style={{
+      position: "absolute", top: "calc(100% + 6px)", right: 8,
+      background: "var(--bg-sidebar)", border: "1px solid var(--border-strong)",
+      borderRadius: 12, overflow: "hidden", minWidth: 180, zIndex: 40,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.4)", animation: "fadeUp 0.12s ease-out both",
+    }}>
+      <button onClick={onClear}
+        style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", background: "none", border: "none", padding: "11px 16px", cursor: "pointer", color: "#f43f5e", fontFamily: "var(--font-body)", fontSize: "0.85rem", transition: "background 0.12s" }}
+        onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
+        onMouseLeave={(e) => e.currentTarget.style.background = "none"}>
+        <Ico.Trash /> Vaciar chat
+      </button>
+    </div>
+  );
+}
 
 // ── Sub-componentes ───────────────────────────────────────────────────────────
 function ReplyBar({ msg, onCancel }) {
@@ -92,7 +124,8 @@ function MediaPreviewBar({ media, caption, onCaptionChange, onSend, onCancel }) 
         <div style={{ fontSize: "0.78rem", color: "var(--text-primary)", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{media.name}</div>
         <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: 2 }}>{sizeLabel}</div>
       </div>
-      <input value={caption} onChange={(e) => onCaptionChange(e.target.value)} placeholder="Añadir caption..." onKeyDown={(e) => e.key === "Enter" && onSend()}
+      <input value={caption} onChange={(e) => onCaptionChange(e.target.value)} placeholder="Añadir caption..."
+        onKeyDown={(e) => e.key === "Enter" && onSend()}
         style={{ background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 10px", color: "var(--text-primary)", fontSize: "0.82rem", fontFamily: "var(--font-body)", outline: "none", width: 160 }} />
       <button onClick={onSend} style={{ background: "var(--accent)", border: "none", borderRadius: 8, padding: "6px 14px", color: "var(--bg-base)", cursor: "pointer", fontSize: "0.82rem", fontWeight: 600, fontFamily: "var(--font-body)" }}>Enviar</button>
       <button onClick={onCancel} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", display: "flex" }}><Ico.Close /></button>
@@ -153,8 +186,13 @@ export default function ChatApp() {
   const { requestPermission, notify }     = useNotifications();
   const { getStatus }                     = useLastSeen();
   const { upload, progress, uploading, error: uploadError, reset: resetUpload } = useCloudinary();
+  const { increment: badgeInc, reset: badgeReset } = useBadge();
 
-  const BOT_CHAT = { id: BOT_CHAT_ID, chatId: BOT_CHAT_ID, name: BOT_NAME, phone: BOT_PHONE, initials: BOT_INITIALS, online: true, isGroup: false, messages: [], unread: 0, isBot: true };
+  const BOT_CHAT = {
+    id: BOT_CHAT_ID, chatId: BOT_CHAT_ID, name: BOT_NAME,
+    phone: BOT_PHONE, initials: BOT_INITIALS, online: true,
+    isGroup: false, messages: [], unread: 0, isBot: true,
+  };
 
   const [chats,           setChats]           = useState([BOT_CHAT]);
   const [selectedId,      setSelectedId]      = useState(null);
@@ -174,6 +212,8 @@ export default function ChatApp() {
   const [showGif,         setShowGif]         = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [uploadFileName,  setUploadFileName]  = useState("");
+  const [showProfile,     setShowProfile]     = useState(false);
+  const [showChatMenu,    setShowChatMenu]    = useState(false);
 
   const bottomRef       = useRef();
   const inputRef        = useRef();
@@ -195,6 +235,18 @@ export default function ChatApp() {
     return chat.online ? "en línea" : "";
   };
 
+  // Reset badge al volver a la pestaña
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === "visible") badgeReset(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
+
+  // Reset badge al abrir un chat
+  useEffect(() => {
+    if (selectedId) badgeReset();
+  }, [selectedId]);
+
   useEffect(() => { requestPermission(); }, []);
 
   useEffect(() => {
@@ -215,7 +267,11 @@ export default function ChatApp() {
 
     socket.on("new_message", (msg) => {
       const miNumero = usuario.numero;
-      
+
+      // Badge: solo si no estamos viendo esa pestaña
+      if (msg.sender !== miNumero && document.visibilityState !== "visible") {
+        badgeInc();
+      }
       if (msg.sender !== miNumero) {
         notify(msg.sender || "Nuevo mensaje", msg.text || "📎", msg.chatId);
       }
@@ -223,25 +279,13 @@ export default function ChatApp() {
       setChats((prev) => prev.map((c) => {
         if (c.id !== msg.chatId) return c;
         const msgs = [...c.messages];
-
         if (msg.sender === miNumero) {
-          let idx = msgs.findIndex((m) => 
-            !m._id && 
-            (m.id === msg.id || (m.text === msg.text && m.sender === miNumero))
-          );
-          
-          if (idx !== -1) {
-            msgs[idx] = msg;
-            return { ...c, messages: msgs };
-          }
-          
-          if (msgs.some((m) => m._id === msg._id)) {
-            return c;
-          }
+          let idx = msgs.findIndex((m) => !m._id && (m.id === msg.id || (m.text === msg.text && m.sender === miNumero)));
+          if (idx !== -1) { msgs[idx] = msg; return { ...c, messages: msgs }; }
+          if (msgs.some((m) => m._id === msg._id)) return c;
         } else {
           if (msgs.some((m) => m._id === msg._id)) return c;
         }
-
         return { ...c, messages: [...msgs, msg] };
       }));
 
@@ -262,6 +306,12 @@ export default function ChatApp() {
     socket.on("message_deleted", ({ messageId, forEveryone }) => {
       setChats((prev) => prev.map((c) => ({ ...c, messages: c.messages.map((m) => String(m._id || m.id) === String(messageId) ? { ...m, deleted: true, text: forEveryone ? "" : m.text } : m) })));
     });
+
+    // Chat vaciado por cualquier participante
+    socket.on("chat_cleared", ({ chatId }) => {
+      setChats((prev) => prev.map((c) => c.id === chatId ? { ...c, messages: [] } : c));
+    });
+
     socket.on("typing", ({ phone }) => {
       if (phone !== usuario.numero) { setTyping(true); clearTimeout(typingTimer.current); typingTimer.current = setTimeout(() => setTyping(false), 2500); }
     });
@@ -276,7 +326,7 @@ export default function ChatApp() {
 
     return () => {
       ["new_message","messages_read","message_reaction","typing","stop_typing",
-      "user_online","user_offline","new_conversation","message_edited","message_deleted"]
+       "user_online","user_offline","new_conversation","message_edited","message_deleted","chat_cleared"]
         .forEach((ev) => socket.off(ev));
     };
   }, [usuario.numero, usuario.nombre, selectedId]);
@@ -318,23 +368,10 @@ export default function ChatApp() {
   const send = () => {
     const trimmed = text.trim();
     if (!trimmed || !selectedId) return;
-    
-    const msgIdTemporal = Date.now();
-    const msgData = { 
-      id: msgIdTemporal, 
-      chatId: selectedId, 
-      type: "out", 
-      text: trimmed, 
-      time: nowTime(), 
-      sender: usuario.numero, 
-      status: "sent", 
-      replyTo: replyMsg?._id || null 
-    };
-    
+    const msgData = { id: Date.now(), chatId: selectedId, type: "out", text: trimmed, time: nowTime(), sender: usuario.numero, status: "sent", replyTo: replyMsg?._id || null };
     addOptimisticMessage(msgData);
     setText(""); setReplyMsg(null);
     inputRef.current?.focus();
-
     if (selectedId === BOT_CHAT_ID) {
       setTimeout(() => {
         setChats((prev) => prev.map((c) => c.id === BOT_CHAT_ID
@@ -359,27 +396,30 @@ export default function ChatApp() {
     const file = e.target.files[0];
     if (!file) return;
     e.target.value = "";
-
-    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      alert(`El archivo supera el límite de ${MAX_SIZE_MB}MB`);
-      return;
-    }
-
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) { alert(`El archivo supera el límite de ${MAX_SIZE_MB}MB`); return; }
     setUploadFileName(file.name);
     setPendingFile(file);
-
     try {
-      const mediaData = await upload(file, (pct) => {});
+      const mediaData = await upload(file);
       setMediaPreview(mediaData);
       setCaption("");
     } catch (err) {
-      if (err.message !== "Subida cancelada") {
-        alert(`Error al subir: ${err.message}`);
-      }
+      if (err.message !== "Subida cancelada") alert(`Error al subir: ${err.message}`);
     } finally {
-      setPendingFile(null);
-      setUploadFileName("");
-      resetUpload();
+      setPendingFile(null); setUploadFileName(""); resetUpload();
+    }
+  };
+
+  // ── Vaciar chat ─────────────────────────────────────────────────────────────
+  const handleClearChat = async () => {
+    if (!selectedId || !window.confirm(`¿Vaciar todos los mensajes de este chat?`)) return;
+    setShowChatMenu(false);
+    try {
+      await clearChat(selectedId);
+      socket.emit("clear_chat", { chatId: selectedId, phone: usuario.numero });
+      setChats((prev) => prev.map((c) => c.id === selectedId ? { ...c, messages: [] } : c));
+    } catch (err) {
+      alert("No se pudo vaciar el chat.");
     }
   };
 
@@ -409,11 +449,15 @@ export default function ChatApp() {
   const handleSelectChat = (id) => {
     setSelectedId(id); setReplyMsg(null); setShowSearch(false);
     setMediaPreview(null); setShowGif(false); setShowEmojiPicker(false);
+    setShowChatMenu(false);
+    badgeReset();
   };
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="app">
       {showAddModal && <AddContactModal myPhone={usuario.numero} myNombre={usuario.nombre} onAdd={handleAddContact} onClose={() => setShowAddModal(false)} />}
+      {showProfile && <UserProfilePanel onClose={() => setShowProfile(false)} />}
 
       {/* ── SIDEBAR ── */}
       <aside className="sidebar">
@@ -421,7 +465,7 @@ export default function ChatApp() {
           <span className="sidebar-logo">Nexus</span>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <button className="icon-btn" onClick={() => setShowThemes((v) => !v)} style={{ color: showThemes ? "var(--accent)" : undefined }}><Ico.Palette /></button>
-            <button className="icon-btn" onClick={() => setShowAddModal(true)}><Ico.Plus /></button>
+            <button className="icon-btn" onClick={() => setShowAddModal(true)} title="Nuevo chat"><Ico.Plus /></button>
             <button className="btn-ghost" onClick={cerrarSesion}>Salir</button>
           </div>
         </div>
@@ -438,12 +482,17 @@ export default function ChatApp() {
           </div>
         )}
 
-        <div className="sidebar-user-bar">
+        {/* Barra de usuario — clic abre perfil */}
+        <div className="sidebar-user-bar" onClick={() => setShowProfile(true)} title="Ver mi perfil"
+          style={{ cursor: "pointer" }}>
           <span className="user-dot" />
           <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {usuario.nombre !== usuario.numero ? usuario.nombre : usuario.numero}
           </span>
-          <span style={{ marginLeft: "auto", fontSize: "0.65rem", color: "var(--text-meta)", fontFamily: "monospace" }}>{usuario.numero}</span>
+          <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: "0.65rem", color: "var(--text-meta)", fontFamily: "monospace" }}>{usuario.numero}</span>
+            <Ico.User />
+          </span>
         </div>
 
         <Stories usuario={usuario} />
@@ -463,17 +512,19 @@ export default function ChatApp() {
         </div>
       </aside>
 
-      {/* ── CHAT AREA (Con clase dinámica para móviles) ── */}
+      {/* ── CHAT AREA ── */}
       {!chat ? (
-        <main className={`chat ${selectedId ? "open" : ""}`}><EmptyState onNew={() => setShowAddModal(true)} /></main>
+        <main className={`chat ${selectedId ? "open" : ""}`}>
+          <EmptyState onNew={() => setShowAddModal(true)} />
+        </main>
       ) : (
         <main className={`chat ${selectedId ? "open" : ""}`} style={{ position: "relative" }}>
+
+          {/* Header */}
           <div className="chat-header">
-            {/* Botón de regresar exclusivo para móviles */}
-            <button className="icon-btn btn-back" onClick={() => setSelectedId(null)} title="Volver a chats">
+            <button className="icon-btn btn-back" onClick={() => setSelectedId(null)} title="Volver">
               <Ico.Back />
             </button>
-            
             <Avatar initials={chat.initials} online={chat.online || getStatus(chat.phone)?.online} isGroup={chat.isGroup} />
             <div className="chat-header-info">
               <div className="chat-header-name">{chat.name}</div>
@@ -481,14 +532,21 @@ export default function ChatApp() {
                 {headerStatus()}
               </div>
             </div>
-            <div className="header-actions">
+            <div className="header-actions" style={{ position: "relative" }}>
               <button className="icon-btn" onClick={() => setShowSearch((v) => !v)} style={{ color: showSearch ? "var(--accent)" : undefined }}><Ico.Search /></button>
               <button className="icon-btn" title="Llamada" onClick={() => alert("Próximamente — Parte 5")}><Ico.Phone /></button>
               <button className="icon-btn" title="Videollamada" onClick={() => alert("Próximamente — Parte 5")}><Ico.Video /></button>
-              <button className="icon-btn"><Ico.Dots /></button>
+              <button className="icon-btn" onClick={() => setShowChatMenu((v) => !v)}
+                style={{ color: showChatMenu ? "var(--accent)" : undefined }}>
+                <Ico.Dots />
+              </button>
+              {showChatMenu && (
+                <ChatMenu onClear={handleClearChat} onClose={() => setShowChatMenu(false)} />
+              )}
             </div>
           </div>
 
+          {/* Mensajes */}
           <div className="messages">
             {loading
               ? <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.8rem", marginTop: "2rem" }}>Cargando mensajes...</p>
@@ -507,9 +565,9 @@ export default function ChatApp() {
                       <Bubble
                         msg={m}
                         currentUserPhone={usuario.numero}
-                        onReply={setReplyMsg} 
+                        onReply={setReplyMsg}
                         onReact={handleReact}
-                        onEdit={handleEdit}   
+                        onEdit={handleEdit}
                         onDelete={handleDelete}
                         replyMsg={m.replyTo ? chat.messages.find((x) => String(x._id || x.id) === String(m.replyTo)) : null}
                       />
@@ -523,53 +581,24 @@ export default function ChatApp() {
 
           {showSearch && <SearchBar messages={chat.messages} onClose={() => setShowSearch(false)} onJump={handleJump} />}
 
-          {uploading && (
-            <UploadProgress
-              progress={progress}
-              fileName={uploadFileName}
-              onCancel={() => { resetUpload(); setPendingFile(null); }}
-            />
-          )}
-
-          {!uploading && (
-            <MediaPreviewBar
-              media={mediaPreview} caption={caption}
-              onCaptionChange={setCaption} onSend={sendMedia}
-              onCancel={() => setMediaPreview(null)}
-            />
-          )}
-
+          {uploading && <UploadProgress progress={progress} fileName={uploadFileName} onCancel={() => { resetUpload(); setPendingFile(null); }} />}
+          {!uploading && <MediaPreviewBar media={mediaPreview} caption={caption} onCaptionChange={setCaption} onSend={sendMedia} onCancel={() => setMediaPreview(null)} />}
           <ReplyBar msg={replyMsg} onCancel={() => setReplyMsg(null)} />
 
           {/* Input bar */}
           <div className="input-bar">
-            <input ref={fileInputRef} type="file"
-              accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.zip,.rar,.7z,.mp3,.wav,.ogg"
-              style={{ display: "none" }} onChange={handleFileSelect} />
-
-            <button className="icon-btn" onClick={() => fileInputRef.current?.click()} title={`Adjuntar (máx. ${MAX_SIZE_MB}MB)`}
-              disabled={uploading} style={{ opacity: uploading ? 0.5 : 1 }}>
-              <Ico.Attach />
-            </button>
+            <input ref={fileInputRef} type="file" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.zip,.rar,.7z" style={{ display: "none" }} onChange={handleFileSelect} />
+            <button className="icon-btn" onClick={() => fileInputRef.current?.click()} title={`Adjuntar (máx. ${MAX_SIZE_MB}MB)`} disabled={uploading} style={{ opacity: uploading ? 0.5 : 1 }}><Ico.Attach /></button>
 
             <div style={{ position: "relative" }}>
-              <button className="icon-btn" onClick={() => { setShowEmojiPicker((v) => !v); setShowGif(false); }}
-                style={{ color: showEmojiPicker ? "var(--accent)" : undefined, fontSize: "1.1rem" }}>
-                😊
-              </button>
+              <button className="icon-btn" onClick={() => { setShowEmojiPicker((v) => !v); setShowGif(false); }} style={{ color: showEmojiPicker ? "var(--accent)" : undefined, fontSize: "1.1rem" }}>😊</button>
               {showEmojiPicker && (
-                <EmojiPickerPanel
-                  onSelect={(emoji) => { setText((p) => p + emoji); setShowEmojiPicker(false); inputRef.current?.focus(); }}
-                  onClose={() => setShowEmojiPicker(false)}
-                />
+                <EmojiPickerPanel onSelect={(emoji) => { setText((p) => p + emoji); setShowEmojiPicker(false); inputRef.current?.focus(); }} onClose={() => setShowEmojiPicker(false)} />
               )}
             </div>
 
             <div style={{ position: "relative" }}>
-              <button className="icon-btn" onClick={() => { setShowGif((v) => !v); setShowEmojiPicker(false); }}
-                style={{ color: showGif ? "var(--accent)" : undefined }}>
-                <Ico.Gif />
-              </button>
+              <button className="icon-btn" onClick={() => { setShowGif((v) => !v); setShowEmojiPicker(false); }} style={{ color: showGif ? "var(--accent)" : undefined }}><Ico.Gif /></button>
               {showGif && <GifPicker onSelect={(gif) => sendMedia(gif, "")} onClose={() => setShowGif(false)} />}
             </div>
 
@@ -578,9 +607,7 @@ export default function ChatApp() {
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
               disabled={uploading}
             />
-            <button className="btn-send" onClick={send} aria-label="Enviar" disabled={uploading}>
-              <Ico.Send />
-            </button>
+            <button className="btn-send" onClick={send} disabled={uploading}><Ico.Send /></button>
           </div>
         </main>
       )}

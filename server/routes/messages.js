@@ -38,17 +38,26 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/messages/:id — marcar como eliminado (soft delete)
+// DELETE /api/messages/:id — eliminar un mensaje (soft delete)
 router.delete('/:id', async (req, res) => {
   try {
     const { forEveryone } = req.body;
     const update = forEveryone
       ? { $set: { deleted: true, text: '', media: null } }
       : { $set: { deleted: true } };
-
     const msg = await Message.findByIdAndUpdate(req.params.id, update, { new: true });
     if (!msg) return res.status(404).json({ error: 'Mensaje no encontrado' });
     res.json(msg);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/messages/clear/:chatId — vaciar chat completo
+router.delete('/clear/:chatId', async (req, res) => {
+  try {
+    await Message.deleteMany({ chatId: req.params.chatId });
+    res.json({ ok: true, chatId: req.params.chatId });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

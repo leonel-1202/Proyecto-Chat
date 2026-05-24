@@ -101,6 +101,17 @@ io.on('connection', (socket) => {
     }
   });
 
+    socket.on('clear_chat', async ({ chatId, phone }) => {
+    try {
+      await Message.deleteMany({ chatId });
+      // Notifica a todos en la sala que el chat fue vaciado
+      io.to(`chat_${chatId}`).emit('chat_cleared', { chatId, by: phone });
+    } catch (err) {
+      console.error('Error clear_chat:', err);
+      socket.emit('error', { msg: 'No se pudo vaciar el chat' });
+    }
+  });
+
   socket.on('join_chat',  (chatId)  => socket.join(`chat_${chatId}`));
   socket.on('join_group', (groupId) => socket.join(`group_${groupId}`));
 
