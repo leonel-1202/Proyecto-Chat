@@ -10,7 +10,6 @@
     "dev:server": "nodemon index.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@vitejs/plugin-react": "^4.7.0",
     "axios": "^1.7.2",
     "cors": "^2.8.5",
