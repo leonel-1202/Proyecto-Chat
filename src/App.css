@@ -154,11 +154,11 @@
   --bg-sidebar:      #1c1318;
   --bg-chat:         #140e11;
   --bg-bubble-in:    #281b22;
-  --bg-bubble-out:   #fb8500; /* Naranja encendido */
+  --bg-bubble-out:   #fb8500;
   --bg-input:        #21161c;
   --bg-hover:        #2b1d25;
   --bg-active:       #38242f;
-  --accent:          #ffb703; /* Amarillo ámbar */
+  --accent:          #ffb703;
   --accent-dim:      #d49600;
   --online:          #219ebc;
   --border:          rgba(255, 183, 3, 0.08);
@@ -173,67 +173,64 @@
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
 }
 
-/* 🍵 MATCHA LATTE (Corregido: Mayor contraste y descanso visual) */
 [data-theme="matcha"] {
-  --bg-base:         #f2efdf; /* Crema ligeramente más denso */
+  --bg-base:         #f2efdf;
   --bg-sidebar:      #e5e1cc;
   --bg-chat:         #f2efdf;
   --bg-bubble-in:    #ded9bc;
-  --bg-bubble-out:   #3d5a80; /* Azul pizarra */
+  --bg-bubble-out:   #3d5a80;
   --bg-input:        #e2ddc4;
   --bg-hover:        #d6cea7;
   --bg-active:       #c9bf93;
-  --accent:          #ca5d41; /* Terracota oscurecido para resaltar */
+  --accent:          #ca5d41;
   --accent-dim:      #a7452e;
-  --online:          #4f8c72; /* Verde oscuro para que se note en fondo claro */
+  --online:          #4f8c72;
   --border:          rgba(0, 0, 0, 0.06);
   --border-strong:   rgba(0, 0, 0, 0.12);
-  --text-primary:    #1e293b; /* Texto principal oscuro */
-  --text-secondary:  #475569; /* Texto secundario legible */
+  --text-primary:    #1e293b;
+  --text-secondary:  #475569;
   --text-meta:       #64748b;
   --text-muted:      #64748b;
-  --text-out:        #ffffff; /* El texto dentro de la burbuja azul es blanco */
+  --text-out:        #ffffff;
   --font-display:    'DM Sans', sans-serif;
   --font-body:       'DM Sans', sans-serif;
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
 }
 
-/* 🍦 PASTEL DREAM (Corregido: Estilo papel suave mate, cero brillo molesto) */
 [data-theme="pastel"] {
-  --bg-base:         #f4f5f6; /* Gris papel mate */
+  --bg-base:         #f4f5f6;
   --bg-sidebar:      #eaeced;
   --bg-chat:         #f4f5f6;
   --bg-bubble-in:    #e1e4e6;
-  --bg-bubble-out:   #e29587; /* Salmón vintage con mejor contraste */
+  --bg-bubble-out:   #e29587;
   --bg-input:        #e4e7e9;
   --bg-hover:        #d5dadc;
   --bg-active:       #c2c9cc;
-  --accent:          #2b6cb0; /* Azul rey suave */
+  --accent:          #2b6cb0;
   --accent-dim:      #1a4976;
   --online:          #388e3c;
   --border:          rgba(0, 0, 0, 0.05);
   --border-strong:   rgba(0, 0, 0, 0.1);
-  --text-primary:    #2d3748; /* Texto principal oscuro */
-  --text-secondary:  #4a5568; /* Texto secundario legible */
+  --text-primary:    #2d3748;
+  --text-secondary:  #4a5568;
   --text-meta:       #718096;
   --text-muted:      #718096;
-  --text-out:        #2d3748; /* Texto de salida oscuro */
+  --text-out:        #2d3748;
   --font-display:    'Outfit', sans-serif;
   --font-body:       'Outfit', sans-serif;
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
 }
 
-/* 5. 🌲 NORDIC FOREST (Elegancia escandinava con tonos fríos) */
 [data-theme="nordic"] {
   --bg-base:         #1a2221;
   --bg-sidebar:      #222c2b;
   --bg-chat:         #1a2221;
   --bg-bubble-in:    #2d3b3a;
-  --bg-bubble-out:   #4f6d65; /* Verde pino opaco */
+  --bg-bubble-out:   #4f6d65;
   --bg-input:        #263331;
   --bg-hover:        #324442;
   --bg-active:       #3d5250;
-  --accent:          #a3b18a; /* Salvia claro */
+  --accent:          #a3b18a;
   --accent-dim:      #588157;
   --online:          #52b788;
   --border:          rgba(163, 177, 138, 0.08);
@@ -248,17 +245,16 @@
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
 }
 
-/* 6. ☕ MOCHA VINTAGE (Tonos café, nostálgicos y acogedores) */
 [data-theme="mocha"] {
   --bg-base:         #1c1613;
   --bg-sidebar:      #261f1c;
   --bg-chat:         #1c1613;
   --bg-bubble-in:    #332a26;
-  --bg-bubble-out:   #d4a373; /* Caramelo */
+  --bg-bubble-out:   #d4a373;
   --bg-input:        #2d2420;
   --bg-hover:        #3a2f2a;
   --bg-active:       #473a34;
-  --accent:          #faedcd; /* Crema vainilla */
+  --accent:          #faedcd;
   --accent-dim:      #ccd5ae;
   --online:          #a3b18a;
   --border:          rgba(212, 163, 115, 0.08);
@@ -273,17 +269,16 @@
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
 }
 
-/* 7. 🖤 PURE AMOLED (Negro absoluto, ideal para ahorrar batería y descansar la vista) */
 [data-theme="amoled"] {
   --bg-base:         #000000;
   --bg-sidebar:      #050505;
   --bg-chat:         #000000;
   --bg-bubble-in:    #121212;
-  --bg-bubble-out:   #ffffff; /* Burbujas de salida blancas */
+  --bg-bubble-out:   #ffffff;
   --bg-input:        #0a0a0a;
   --bg-hover:        #161616;
   --bg-active:       #222222;
-  --accent:          #ffffff; /* Detalles minimalistas en blanco puro */
+  --accent:          #ffffff;
   --accent-dim:      #888888;
   --online:          #00e676;
   --border:          rgba(255, 255, 255, 0.08);
@@ -292,19 +287,18 @@
   --text-secondary:  #aaaaaa;
   --text-meta:       #666666;
   --text-muted:      #666666;
-  --text-out:        #000000; /* Texto de salida negro sobre burbuja blanca */
+  --text-out:        #000000;
   --font-display:    'Space Mono', monospace;
   --font-body:       'Outfit', sans-serif;
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
 }
 
-/* 8. 🐳 ATLANTIS (Tonos turquesa y azul marino profundo) */
 [data-theme="atlantis"] {
   --bg-base:         #05131a;
   --bg-sidebar:      #091c26;
   --bg-chat:         #05131a;
   --bg-bubble-in:    #0e2a38;
-  --bg-bubble-out:   #00b4d8; /* Turquesa brillante */
+  --bg-bubble-out:   #00b4d8;
   --bg-input:        #0b2330;
   --bg-hover:        #123447;
   --bg-active:       #164159;
@@ -323,17 +317,16 @@
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
 }
 
-/* 9. 🎃 HALLOWEEN NIGHT (Estilo gótico moderno, calabaza y ceniza) */
 [data-theme="halloween"] {
   --bg-base:         #0f0f12;
   --bg-sidebar:      #16161c;
   --bg-chat:         #0f0f12;
   --bg-bubble-in:    #23232c;
-  --bg-bubble-out:   #f77f00; /* Naranja calabaza */
+  --bg-bubble-out:   #f77f00;
   --bg-input:        #1b1b22;
   --bg-hover:        #272732;
   --bg-active:       #323240;
-  --accent:          #fcbf49; /* Amarillo místico */
+  --accent:          #fcbf49;
   --accent-dim:      #d62828;
   --online:          #00f5d4;
   --border:          rgba(247, 127, 0, 0.08);
@@ -348,7 +341,6 @@
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
 }
 
-/* 10. 🧪 TOXIC CYBER (Modo hacker / terminal de comandos retro) */
 [data-theme="toxic"] {
   --bg-base:         #0a0f0d;
   --bg-sidebar:      #101714;
@@ -358,7 +350,7 @@
   --bg-input:        #121c18;
   --bg-hover:        #1d2d26;
   --bg-active:       #273e34;
-  --accent:          #39ff14; /* Verde neón tóxico */
+  --accent:          #39ff14;
   --accent-dim:      #2b9348;
   --online:          #39ff14;
   --border:          rgba(57, 255, 20, 0.08);
@@ -370,7 +362,7 @@
   --text-out:        #39ff14;
   --font-display:    'Space Mono', monospace;
   --font-body:       'Space Mono', monospace;
-  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --transition: 0.15s ease; /* Bordes rectos tipo terminal */
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --transition: 0.15s ease;
 }
 
 body {
@@ -484,14 +476,13 @@ body {
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 12px;                /* Un poquito más de espacio entre elementos */
-  overflow-x: auto;         /* ◄ Activa el scroll horizontal de forma automática */
-  white-space: nowrap;      /* ◄ Evita que los círculos intenten bajarse a otra línea */
-  scrollbar-width: none;    /* ◄ Oculta la barra de scroll molesta en Firefox */
+  gap: 12px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
   animation: fadeUp 0.15s ease-out both;
 }
 
-/* Oculta la barra de scroll en navegadores Chrome, Safari y Edge para mantener el diseño limpio */
 .theme-strip::-webkit-scrollbar {
   display: none;
 }
@@ -499,16 +490,16 @@ body {
 .theme-dots {
   display: flex;
   gap: 10px;
-  flex-shrink: 0;           /* ◄ CRÍTICO: Evita que el contenedor de puntos se aplaste */
+  flex-shrink: 0;
 }
 
 .theme-dot {
-  width: 20px; height: 20px; /* Los agrandé un poquito (de 16px a 20px) para que en celular sea más fácil tocarlos */
+  width: 20px; height: 20px;
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid transparent;
   transition: transform 0.15s, border-color 0.15s;
-  flex-shrink: 0;           /* ◄ CRÍTICO: Obliga a cada círculo a mantener su forma circular perfecta */
+  flex-shrink: 0;
 }
 
 .theme-strip-label {
@@ -835,24 +826,18 @@ body {
   position: relative;
 }
 
-/* ==========================================================================
-   📱 RESPONSIVE PARA DISPOSITIVOS MÓVILES (Pantallas menores a 768px)
-   ========================================================================== */
 @media (max-width: 768px) {
   
-  /* Cambiamos el Grid de dos columnas a una sola columna apilada */
   .app {
     grid-template-columns: 1fr;
     position: relative;
   }
 
-  /* La barra lateral ocupará todo el ancho de la pantalla */
   .sidebar {
     width: 100%;
     height: 100dvh;
   }
 
-  /* El chat se superpone cubriendo toda la pantalla cuando está activo */
   .chat {
     position: absolute;
     top: 0;
@@ -860,27 +845,23 @@ body {
     width: 100%;
     height: 100dvh;
     z-index: 10;
-    display: none; /* Por defecto oculto si no hay chat seleccionado */
+    display: none;
   }
 
-  /* 💡 CLASE DINÁMICA: Cuando haya un chat seleccionado, le agregas la clase .open al contenedor .chat */
   .chat.open {
     display: flex; 
     animation: fadeUp 0.2s ease-out;
   }
 
-  /* Hacemos las burbujas un poco más anchas en celular para aprovechar el espacio */
   .bubble-wrap {
     max-width: 85%;
   }
 }
 
-/* Por defecto en computadoras, el botón de atrás está escondido */
 .btn-back {
   display: none !important;
 }
 
-/* Solo se activará cuando la pantalla sea pequeña (móviles) */
 @media (max-width: 768px) {
   .btn-back {
     display: flex !important;
@@ -888,14 +869,11 @@ body {
   }
 }
 
-/* ── AGREGAR al final de tu App.css ────────────────────────────────────────── */
-
 @keyframes slideInLeft {
   from { transform: translateX(-100%); opacity: 0; }
   to   { transform: translateX(0);     opacity: 1; }
 }
 
-/* Badge en sidebar-user-bar al hacer clic → abre perfil */
 .sidebar-user-bar {
   cursor: pointer;
   transition: background var(--transition);

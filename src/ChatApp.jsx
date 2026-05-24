@@ -17,7 +17,6 @@ import UserProfilePanel from "./componentes/UserProfilePanel";
 import { getMensajes, getConversaciones, clearChat } from "./api";
 import socket from "./socket";
 
-// ── Bot ───────────────────────────────────────────────────────────────────────
 const BOT_CHAT_ID  = "bot_nexus";
 const BOT_PHONE    = "+570000000000";
 const BOT_NAME     = "Nexus-IA 🤖";
@@ -52,7 +51,6 @@ function convToChat(conv, myPhone) {
   };
 }
 
-// ── Iconos ────────────────────────────────────────────────────────────────────
 const Ico = {
   Phone:   () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.21 3.18 2 2 0 0 1 3.22 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.1a16 16 0 0 0 6 6l.62-.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/></svg>,
   Video:   () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>,
@@ -69,7 +67,6 @@ const Ico = {
   Trash:   () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>,
 };
 
-// ── Menú "···" del header ────────────────────────────────────────────────────
 function ChatMenu({ onClear, onClose }) {
   const ref = useRef();
   useEffect(() => {
@@ -95,7 +92,6 @@ function ChatMenu({ onClear, onClose }) {
   );
 }
 
-// ── Sub-componentes ───────────────────────────────────────────────────────────
 function ReplyBar({ msg, onCancel }) {
   if (!msg) return null;
   return (
@@ -179,7 +175,6 @@ function EmptyState({ onNew }) {
   );
 }
 
-// ── Componente principal ──────────────────────────────────────────────────────
 export default function ChatApp() {
   const { usuario, cerrarSesion }         = useAuth();
   const { theme, setTheme, THEMES }       = useTheme();
@@ -235,14 +230,12 @@ export default function ChatApp() {
     return chat.online ? "en línea" : "";
   };
 
-  // Reset badge al volver a la pestaña
   useEffect(() => {
     const onVisible = () => { if (document.visibilityState === "visible") badgeReset(); };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, []);
 
-  // Reset badge al abrir un chat
   useEffect(() => {
     if (selectedId) badgeReset();
   }, [selectedId]);
@@ -268,7 +261,6 @@ export default function ChatApp() {
     socket.on("new_message", (msg) => {
       const miNumero = usuario.numero;
 
-      // Badge: solo si no estamos viendo esa pestaña
       if (msg.sender !== miNumero && document.visibilityState !== "visible") {
         badgeInc();
       }
@@ -307,7 +299,6 @@ export default function ChatApp() {
       setChats((prev) => prev.map((c) => ({ ...c, messages: c.messages.map((m) => String(m._id || m.id) === String(messageId) ? { ...m, deleted: true, text: forEveryone ? "" : m.text } : m) })));
     });
 
-    // Chat vaciado por cualquier participante
     socket.on("chat_cleared", ({ chatId }) => {
       setChats((prev) => prev.map((c) => c.id === chatId ? { ...c, messages: [] } : c));
     });
@@ -326,7 +317,7 @@ export default function ChatApp() {
 
     return () => {
       ["new_message","messages_read","message_reaction","typing","stop_typing",
-       "user_online","user_offline","new_conversation","message_edited","message_deleted","chat_cleared"]
+      "user_online","user_offline","new_conversation","message_edited","message_deleted","chat_cleared"]
         .forEach((ev) => socket.off(ev));
     };
   }, [usuario.numero, usuario.nombre, selectedId]);
@@ -410,7 +401,6 @@ export default function ChatApp() {
     }
   };
 
-  // ── Vaciar chat ─────────────────────────────────────────────────────────────
   const handleClearChat = async () => {
     if (!selectedId || !window.confirm(`¿Vaciar todos los mensajes de este chat?`)) return;
     setShowChatMenu(false);
@@ -453,13 +443,11 @@ export default function ChatApp() {
     badgeReset();
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="app">
       {showAddModal && <AddContactModal myPhone={usuario.numero} myNombre={usuario.nombre} onAdd={handleAddContact} onClose={() => setShowAddModal(false)} />}
       {showProfile && <UserProfilePanel onClose={() => setShowProfile(false)} />}
 
-      {/* ── SIDEBAR ── */}
       <aside className="sidebar">
         <div className="sidebar-top">
           <span className="sidebar-logo">Nexus</span>
@@ -482,7 +470,6 @@ export default function ChatApp() {
           </div>
         )}
 
-        {/* Barra de usuario — clic abre perfil */}
         <div className="sidebar-user-bar" onClick={() => setShowProfile(true)} title="Ver mi perfil"
           style={{ cursor: "pointer" }}>
           <span className="user-dot" />
@@ -512,7 +499,6 @@ export default function ChatApp() {
         </div>
       </aside>
 
-      {/* ── CHAT AREA ── */}
       {!chat ? (
         <main className={`chat ${selectedId ? "open" : ""}`}>
           <EmptyState onNew={() => setShowAddModal(true)} />
@@ -520,7 +506,6 @@ export default function ChatApp() {
       ) : (
         <main className={`chat ${selectedId ? "open" : ""}`} style={{ position: "relative" }}>
 
-          {/* Header */}
           <div className="chat-header">
             <button className="icon-btn btn-back" onClick={() => setSelectedId(null)} title="Volver">
               <Ico.Back />
@@ -546,7 +531,6 @@ export default function ChatApp() {
             </div>
           </div>
 
-          {/* Mensajes */}
           <div className="messages">
             {loading
               ? <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.8rem", marginTop: "2rem" }}>Cargando mensajes...</p>
@@ -585,7 +569,6 @@ export default function ChatApp() {
           {!uploading && <MediaPreviewBar media={mediaPreview} caption={caption} onCaptionChange={setCaption} onSend={sendMedia} onCancel={() => setMediaPreview(null)} />}
           <ReplyBar msg={replyMsg} onCancel={() => setReplyMsg(null)} />
 
-          {/* Input bar */}
           <div className="input-bar">
             <input ref={fileInputRef} type="file" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.zip,.rar,.7z" style={{ display: "none" }} onChange={handleFileSelect} />
             <button className="icon-btn" onClick={() => fileInputRef.current?.click()} title={`Adjuntar (máx. ${MAX_SIZE_MB}MB)`} disabled={uploading} style={{ opacity: uploading ? 0.5 : 1 }}><Ico.Attach /></button>

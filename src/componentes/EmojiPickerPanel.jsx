@@ -48,8 +48,7 @@ export default function EmojiPickerPanel({ onSelect, onClose }) {
 
     const searchResults = search.trim()
         ? CATEGORIES.flatMap((c) => c.emojis).filter((e) => {
-            // Búsqueda básica por categoría y posición
-            return true; // Los emojis no tienen nombres en JS, así que mostramos todos al buscar
+            return true;
         }).slice(0, 60)
     : null;
 
@@ -72,7 +71,6 @@ export default function EmojiPickerPanel({ onSelect, onClose }) {
                 animation: "fadeUp 0.15s ease-out both",
             }}
         >
-        {/* Búsqueda */}
         <div style={{ padding: "10px 12px", borderBottom: "1px solid var(--border)" }}>
             <input
                 autoFocus
@@ -88,7 +86,6 @@ export default function EmojiPickerPanel({ onSelect, onClose }) {
             />
         </div>
 
-        {/* Categorías */}
         {!search && (
             <div style={{ display: "flex", borderBottom: "1px solid var(--border)", overflowX: "auto", padding: "4px 6px", gap: 2 }}>
             {CATEGORIES.map((cat, i) => (
@@ -113,7 +110,6 @@ export default function EmojiPickerPanel({ onSelect, onClose }) {
         </div>
         )}
 
-      {/* Grid de emojis */}
         <div style={{ height: 220, overflowY: "auto", padding: "8px 10px" }}>
             {!search && (
                 <div style={{ fontSize: "0.65rem", color: "var(--text-muted)", marginBottom: 6, letterSpacing: "0.06em", textTransform: "uppercase" }}>

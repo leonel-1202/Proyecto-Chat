@@ -67,8 +67,8 @@ const s = {
 
 function PhoneInput({ onSubmit }) {
   const [country,    setCountry]    = useState(COUNTRY_CODES[0]);
-  const [rawDisplay, setRawDisplay] = useState("");  // lo que se muestra en el input
-  const [normalized, setNormalized] = useState("");  // número completo normalizado
+  const [rawDisplay, setRawDisplay] = useState("");
+  const [normalized, setNormalized] = useState("");
   const [open,       setOpen]       = useState(false);
   const dropRef = useRef(null);
 
@@ -76,7 +76,6 @@ function PhoneInput({ onSubmit }) {
   const digits    = rawDisplay.replace(/\D/g, "");
   const canSubmit = digits.length >= minDigits;
 
-  // Cerrar dropdown al click fuera
   useEffect(() => {
     const handler = (e) => {
       if (!dropRef.current?.contains(e.target)) setOpen(false);
@@ -85,7 +84,6 @@ function PhoneInput({ onSubmit }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Resetear al cambiar de país
   const handleCountryChange = (c) => {
     setCountry(c);
     setRawDisplay("");
@@ -93,7 +91,6 @@ function PhoneInput({ onSubmit }) {
     setOpen(false);
   };
 
-  // Formateo automático mientras escribe
   const handleChange = (e) => {
     const input = e.target.value;
     const { formatted, normalized: norm } = formatPhoneInput(input, country.code);
@@ -114,7 +111,6 @@ function PhoneInput({ onSubmit }) {
       </div>
 
       <div style={{ display: "flex", gap: 10 }}>
-        {/* Selector de país */}
         <div ref={dropRef} style={{ position: "relative" }}>
           <button
             onClick={() => setOpen((o) => !o)}
@@ -170,7 +166,6 @@ function PhoneInput({ onSubmit }) {
           )}
         </div>
 
-        {/* Input del número */}
         <input
           type="tel"
           placeholder={country.code === "+57" ? "300 1234567" :
@@ -185,7 +180,6 @@ function PhoneInput({ onSubmit }) {
         />
       </div>
 
-      {/* Preview del número normalizado */}
       {normalized && (
         <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: -16, paddingLeft: 4 }}>
           Tu número: <span style={{ color: "var(--accent-dim)", fontFamily: "monospace" }}>{normalized}</span>
@@ -321,7 +315,6 @@ export default function Login() {
           </span>
         </div>
 
-        {/* Barra de progreso */}
         <div style={{ display: "flex", gap: 6, marginBottom: 36 }}>
           {STEPS.map((st, i) => (
             <div key={st} style={{

@@ -36,23 +36,19 @@ const io = new Server(server, {
 app.use(cors({ origin: ALLOWED_ORIGINS }));
 app.use(express.json({ limit: '15mb' }));
 
-// Conexión Segura a MongoDB
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB conectado'))
   .catch((err) => console.error('❌ MongoDB error:', err));
 
-// ── RUTAS DE LA API (Siempre van primero) ──────────────────────────────────
 app.use('/api/messages',      messagesRouter);
 app.use('/api/groups',        groupsRouter);
 app.use('/api/status',        statusRouter);
 app.use('/api/conversations', conversationsRouter);
 
-// ── SERVIR FRONTEND EN PRODUCCIÓN (Siempre va después de las rutas) ─────────
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist')));
   
-  // CORRECCIÓN: Usamos /.*/ o '(.*)' para que no rompa Express 5 en Render
   app.get(/(.*)/, (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
     res.sendFile(path.join(__dirname, '../dist/index.html'));
@@ -61,7 +57,6 @@ if (process.env.NODE_ENV === 'production') {
 
 const connectedUsers = new Map();
 
-// ── LÓGICA DE SOCKET.IO ─────────────────────────────────────────────────────
 io.on('connection', (socket) => {
   console.log('🟢 Cliente conectado:', socket.id);
 
@@ -104,7 +99,6 @@ io.on('connection', (socket) => {
     socket.on('clear_chat', async ({ chatId, phone }) => {
     try {
       await Message.deleteMany({ chatId });
-      // Notifica a todos en la sala que el chat fue vaciado
       io.to(`chat_${chatId}`).emit('chat_cleared', { chatId, by: phone });
     } catch (err) {
       console.error('Error clear_chat:', err);
@@ -168,7 +162,6 @@ io.on('connection', (socket) => {
         { $set: { lastMessage: data.text || '📎', lastTime: saved.time || horaActual, updatedAt: new Date() } }
       );
 
-      // Corrección de duplicados: mandamos a la sala completa
       io.to(`chat_${data.chatId}`).emit('new_message', saved);
     } catch (err) {
       console.error('Error send_message:', err);

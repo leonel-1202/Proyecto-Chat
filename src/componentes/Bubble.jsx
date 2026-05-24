@@ -3,7 +3,6 @@ import Lightbox from "./Lightbox";
 
 const EMOJIS = ["❤️", "😂", "😮", "😢", "👍", "👎"];
 
-// ── CheckMark ─────────────────────────────────────────────────────────────────
 function CheckMark({ status }) {
   if (status === "sent") {
     return (
@@ -43,7 +42,6 @@ function ReplyPreview({ msg }) {
   );
 }
 
-// ── MediaContent con Lightbox ─────────────────────────────────────────────────
 function MediaContent({ media }) {
   const [lightbox, setLightbox] = useState(false);
   if (!media) return null;
@@ -151,7 +149,6 @@ function ContextMenu({ isOut, hasText, onReply, onCopy, onEdit, onDelete, onClos
   );
 }
 
-// ── Bubble ────────────────────────────────────────────────────────────────────
 export default function Bubble({ msg, onReply, onReact, onEdit, onDelete, replyMsg, currentUserPhone }) {
   const [showPicker,  setShowPicker]  = useState(false);
   const [showContext, setShowContext] = useState(false);
@@ -160,7 +157,6 @@ export default function Bubble({ msg, onReply, onReact, onEdit, onDelete, replyM
   const [editText,    setEditText]    = useState(msg.text || "");
   const wrapRef = useRef();
 
-  // 1. Cálculo dinámico del tipo de burbuja según el número de la sesión actual
   const isOut = msg.sender === currentUserPhone;
   const bubbleType = isOut ? "out" : "in";
 
@@ -206,7 +202,6 @@ export default function Bubble({ msg, onReply, onReact, onEdit, onDelete, replyM
       onContextMenu={handleContextMenu}>
       <div className={`bubble ${bubbleType}`} style={{ position: "relative", overflow: "visible" }}>
 
-        {/* Botones flotantes */}
         <div className="bubble-actions">
           <button onClick={() => onReply?.(msg)} title="Responder"
             style={{ background: "var(--bg-sidebar)", border: "1px solid var(--border-strong)", borderRadius: 8, width: 30, height: 30, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)" }}>

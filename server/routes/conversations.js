@@ -8,7 +8,6 @@ export function makeChatId(a, b) {
     return [a, b].sort().join('__');
 }
 
-// GET: Obtener conversaciones
 router.get('/', async (req, res) => {
     try {
         const { phone } = req.query;
@@ -30,7 +29,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// POST: Crear conversación de forma segura sin upsert conflictivos
 router.post('/', async (req, res) => {
     try {
         const { myPhone, myNombre, theirPhone, theirNombre } = req.body;
@@ -40,10 +38,8 @@ router.post('/', async (req, res) => {
 
         const chatId = makeChatId(myPhone, theirPhone);
 
-        // 1. Buscamos primero si ya existe la conversación
         let conv = await Conversation.findOne({ chatId });
 
-        // 2. Si no existe, la creamos limpiamente para evitar errores de duplicidad en Atlas
         if (!conv) {
             conv = await Conversation.create({
                 chatId,
@@ -60,13 +56,12 @@ router.post('/', async (req, res) => {
     }
 });
 
-// PATCH: Actualizar conversación sin advertencias obsoletas
 router.patch('/:chatId', async (req, res) => {
     try {
         const conv = await Conversation.findOneAndUpdate(
             { chatId: req.params.chatId },
             { $set: { lastMessage: req.body.lastMessage, lastTime: req.body.lastTime } },
-            { returnDocument: 'after' } // ◄ Cambiado 'new: true' para quitar la advertencia de Mongoose
+            { returnDocument: 'after' }
         );
         res.json(conv);
     } catch (err) {
