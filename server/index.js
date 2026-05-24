@@ -17,13 +17,13 @@ import Message from './models/Message.js';
 import Group from './models/Group.js';
 import Status from './models/Status.js';
 import Conversation from './models/Conversation.js';
-import conversationsRouter, {
-  makeChatId
-} from './routes/conversations.js';
 
 import messagesRouter from './routes/messages.js';
 import groupsRouter from './routes/groups.js';
 import statusRouter from './routes/status.js';
+import conversationsRouter, {
+  makeChatId
+} from './routes/conversations.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -75,7 +75,7 @@ async function obtenerRespuestaInteligente(mensajeUsuario) {
     contents: mensajeUsuario
   });
 
-  return response.text;
+  return response.text || 'No pude generar respuesta.';
 }
 
 const connectedUsers = new Map();
@@ -90,9 +90,11 @@ io.on('connection', socket => {
         minute: '2-digit'
       });
 
+      const esBot = data.sender === '+570000000000';
+
       const saved = await Message.create({
         chatId: data.chatId,
-        type: data.type || 'out',
+        type: data.type || (esBot ? 'in' : 'out'),
         text: data.text || '',
         media: data.media || null,
         sender: data.sender,
@@ -113,28 +115,65 @@ io.on('connection', socket => {
 
       io.to(`chat_${data.chatId}`).emit('new_message', saved);
 
-      if (data.chatId === 'bot_nexus') {
+      const esChatBot =
+        typeof data.chatId === 'string' &&
+        data.chatId.startsWith('bot_nexus_');
+
+      if (esChatBot && !esBot) {
         try {
-          const respuestaIA = await obtenerRespuestaInteligente(data.text);
+          const respuestaIA =
+            await obtenerRespuestaInteligente(data.text);
 
-          const respuestaGuardada = await Message.create({
-            chatId: 'bot_nexus',
-            type: 'in',
-            text: respuestaIA,
-            sender: '+570000000000',
-            status: 'read'
-          });
+          const respuestaGuardada =
+            await Message.create({
+              chatId: data.chatId,
+              type: 'in',
+              text: respuestaIA,
+              sender: '+570000000000',
+              status: 'read'
+            });
 
-          io.to('chat_bot_nexus')
-            .emit('new_message', respuestaGuardada);
+          await Conversation.findOneAndUpdate(
+            { chatId: data.chatId },
+            {
+              $set: {
+                lastMessage: respuestaIA,
+                updatedAt: new Date()
+              }
+            }
+          );
+
+          io.to(`chat_${data.chatId}`).emit(
+            'new_message',
+            respuestaGuardada
+          );
 
         } catch (geminiError) {
-          console.error('🔴 Error Gemini REAL:', geminiError);
+          console.error(
+            '🔴 Error Gemini:',
+            geminiError
+          );
+
+          const respuestaError =
+            await Message.create({
+              chatId: data.chatId,
+              type: 'in',
+              text:
+                'Lo siento, tuve un problema temporal al responder.',
+              sender: '+570000000000',
+              status: 'read'
+            });
+
+          io.to(`chat_${data.chatId}`).emit(
+            'new_message',
+            respuestaError
+          );
         }
       }
 
     } catch (err) {
       console.error('Error send_message:', err);
+
       socket.emit('error', {
         msg: 'No se pudo enviar el mensaje'
       });
@@ -164,10 +203,10 @@ io.on('connection', socket => {
       theirNombre
     }) => {
       try {
-        const chatId = makeChatId(
-          myPhone,
-          theirPhone
-        );
+        const chatId =
+          theirPhone === '+570000000000'
+            ? `bot_nexus_${myPhone}`
+            : makeChatId(myPhone, theirPhone);
 
         const conv =
           await Conversation.findOneAndUpdate(
@@ -178,13 +217,11 @@ io.on('connection', socket => {
                 participants: [
                   {
                     phone: myPhone,
-                    nombre:
-                      myNombre || myPhone
+                    nombre: myNombre || myPhone
                   },
                   {
                     phone: theirPhone,
-                    nombre:
-                      theirNombre || theirPhone
+                    nombre: theirNombre || theirPhone
                   }
                 ]
               }
@@ -200,6 +237,27 @@ io.on('connection', socket => {
           'conversation_ready',
           conv
         );
+
+        const theirSocketId =
+          connectedUsers.get(theirPhone);
+
+        if (theirSocketId) {
+          const theirSocket =
+            io.sockets.sockets.get(
+              theirSocketId
+            );
+
+          if (theirSocket) {
+            theirSocket.join(
+              `chat_${chatId}`
+            );
+
+            theirSocket.emit(
+              'new_conversation',
+              conv
+            );
+          }
+        }
 
       } catch (err) {
         console.error(
