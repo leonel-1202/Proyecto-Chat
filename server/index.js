@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 import Message from './models/Message.js';
 import Group from './models/Group.js';
 import Status from './models/Status.js';
-import Conversation from './routes/conversations.js';
+import Conversation from './models/Conversation.js';
 import conversationsRouter, {
   makeChatId
 } from './routes/conversations.js';
