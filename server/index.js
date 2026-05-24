@@ -52,8 +52,8 @@ app.use('/api/conversations', conversationsRouter);
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist')));
   
-  // Solo atrapa lo que no sea una ruta de la API /api
-  app.get('*', (req, res, next) => {
+  // CORRECCIÓN: Usamos /.*/ o '(.*)' para que no rompa Express 5 en Render
+  app.get(/(.*)/, (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
     res.sendFile(path.join(__dirname, '../dist/index.html'));
   });
