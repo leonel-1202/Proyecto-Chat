@@ -61,12 +61,23 @@ if (process.env.NODE_ENV === 'production') {
 
 async function obtenerRespuestaInteligente(mensajeUsuario) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    if (!process.env.GOOGLE_API_KEY) {
+      console.error("❌ ERROR: La variable GOOGLE_API_KEY no está definida en el entorno.");
+      return "Error interno: Configuración de IA ausente.";
+    }
+
+    const aiClient = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+    const model = aiClient.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
     const result = await model.generateContent(mensajeUsuario);
-    return result.response.text();
+    const response = await result.response;
+    
+    return response.text();
   } catch (error) {
-    console.error("Error en Gemini:", error);
-    return "Lo siento, tuve un problema con mi conexión a la IA.";
+    console.error("🔴 Error detallado de Gemini en producción:", JSON.stringify(error, null, 2));
+    console.error("Message del error:", error.message);
+    
+    return `Error de conexión con Gemini. Razón: ${error.message || "Desconocida"}`;
   }
 }
 
