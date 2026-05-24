@@ -125,6 +125,153 @@
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
 }
 
+[data-theme="cyberpunk"] {
+  --bg-base:         #07050f;
+  --bg-sidebar:      #0c0a17;
+  --bg-chat:         #07050f;
+  --bg-bubble-in:    #151226;
+  --bg-bubble-out:   #7b2cbf;
+  --bg-input:        #110e22;
+  --bg-hover:        #181430;
+  --bg-active:       #1e193c;
+  --accent:          #00f5d4;
+  --accent-dim:      #00bfa5;
+  --online:          #00f5d4;
+  --border:          rgba(0, 245, 212, 0.08);
+  --border-strong:   rgba(0, 245, 212, 0.18);
+  --text-primary:    #f3f0fa;
+  --text-secondary:  #a19bb8;
+  --text-meta:       #66607c;
+  --text-muted:      #66607c;
+  --text-out:        #ffffff;
+  --font-display:    'Space Mono', monospace;
+  --font-body:       'Outfit', sans-serif;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
+}
+
+[data-theme="matcha"] {
+  --bg-base:         #f4f1de;
+  --bg-sidebar:      #ebe7d0;
+  --bg-chat:         #f4f1de;
+  --bg-bubble-in:    #e3dec3;
+  --bg-bubble-out:   #3d5a80;
+  --bg-input:        #eae5ca;
+  --bg-hover:        #e0dbae;
+  --bg-active:       #d4ce9c;
+  --accent:          #e07a5f;
+  --accent-dim:      #c3644b;
+  --online:          #81b29a;
+  --border:          rgba(61, 90, 128, 0.08);
+  --border-strong:   rgba(61, 90, 128, 0.15);
+  --text-primary:    #2f3e46;
+  --text-secondary:  #5c6b73;
+  --text-meta:       #8b9a9a;
+  --text-muted:      #8b9a9a;
+  --text-out:        #ffffff;
+  --font-display:    'DM Sans', sans-serif;
+  --font-body:       'DM Sans', sans-serif;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
+}
+
+[data-theme="sunset"] {
+  --bg-base:         #140e11;
+  --bg-sidebar:      #1c1318;
+  --bg-chat:         #140e11;
+  --bg-bubble-in:    #281b22;
+  --bg-bubble-out:   #fb8500; /* Naranja encendido */
+  --bg-input:        #21161c;
+  --bg-hover:        #2b1d25;
+  --bg-active:       #38242f;
+  --accent:          #ffb703; /* Amarillo ámbar */
+  --accent-dim:      #d49600;
+  --online:          #219ebc;
+  --border:          rgba(255, 183, 3, 0.08);
+  --border-strong:   rgba(255, 183, 3, 0.18);
+  --text-primary:    #faebeb;
+  --text-secondary:  #b8a4a9;
+  --text-meta:       #7d6b70;
+  --text-muted:      #7d6b70;
+  --text-out:        #140e11;
+  --font-display:    'Cormorant Garamond', Georgia, serif;
+  --font-body:       'Outfit', sans-serif;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
+}
+
+/* 4. 🍦 PASTEL DREAM (Limpio, suave y minimalista) */
+[data-theme="pastel"] {
+  --bg-base:         #f8f9fa;
+  --bg-sidebar:      #f1f3f5;
+  --bg-chat:         #f8f9fa;
+  --bg-bubble-in:    #e9ecef;
+  --bg-bubble-out:   #ffb5a7; /* Salmón dulce pastel */
+  --bg-input:        #edf2f7;
+  --bg-hover:        #e2e8f0;
+  --bg-active:       #cbd5e1;
+  --accent:          #4a90e2; /* Azul pastel vivo */
+  --accent-dim:      #2b6cb0;
+  --online:          #66bb6a;
+  --border:          rgba(0, 0, 0, 0.04);
+  --border-strong:   rgba(0, 0, 0, 0.08);
+  --text-primary:    #2d3748;
+  --text-secondary:  #718096;
+  --text-meta:       #a0aec0;
+  --text-muted:      #a0aec0;
+  --text-out:        #2d3748;
+  --font-display:    'Outfit', sans-serif;
+  --font-body:       'Outfit', sans-serif;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
+}
+
+/* 5. 🌲 NORDIC FOREST (Elegancia escandinava con tonos fríos) */
+[data-theme="nordic"] {
+  --bg-base:         #1a2221;
+  --bg-sidebar:      #222c2b;
+  --bg-chat:         #1a2221;
+  --bg-bubble-in:    #2d3b3a;
+  --bg-bubble-out:   #4f6d65; /* Verde pino opaco */
+  --bg-input:        #263331;
+  --bg-hover:        #324442;
+  --bg-active:       #3d5250;
+  --accent:          #a3b18a; /* Salvia claro */
+  --accent-dim:      #588157;
+  --online:          #52b788;
+  --border:          rgba(163, 177, 138, 0.08);
+  --border-strong:   rgba(163, 177, 138, 0.18);
+  --text-primary:    #e9ecef;
+  --text-secondary:  #94a3a1;
+  --text-meta:       #617270;
+  --text-muted:      #617270;
+  --text-out:        #f8f9fa;
+  --font-display:    'DM Sans', sans-serif;
+  --font-body:       'Outfit', sans-serif;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
+}
+
+/* 6. ☕ MOCHA VINTAGE (Tonos café, nostálgicos y acogedores) */
+[data-theme="mocha"] {
+  --bg-base:         #1c1613;
+  --bg-sidebar:      #261f1c;
+  --bg-chat:         #1c1613;
+  --bg-bubble-in:    #332a26;
+  --bg-bubble-out:   #d4a373; /* Caramelo */
+  --bg-input:        #2d2420;
+  --bg-hover:        #3a2f2a;
+  --bg-active:       #473a34;
+  --accent:          #faedcd; /* Crema vainilla */
+  --accent-dim:      #ccd5ae;
+  --online:          #a3b18a;
+  --border:          rgba(212, 163, 115, 0.08);
+  --border-strong:   rgba(212, 163, 115, 0.18);
+  --text-primary:    #f7f1ed;
+  --text-secondary:  #bfaea7;
+  --text-meta:       #8a7871;
+  --text-muted:      #8a7871;
+  --text-out:        #1c1613;
+  --font-display:    'Cormorant Garamond', Georgia, serif;
+  --font-body:       'Outfit', sans-serif;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
+}
+
 body {
   font-family: var(--font-body);
   background: var(--bg-base);
