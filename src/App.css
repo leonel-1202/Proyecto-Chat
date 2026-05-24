@@ -149,30 +149,6 @@
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
 }
 
-[data-theme="matcha"] {
-  --bg-base:         #f4f1de;
-  --bg-sidebar:      #ebe7d0;
-  --bg-chat:         #f4f1de;
-  --bg-bubble-in:    #e3dec3;
-  --bg-bubble-out:   #3d5a80;
-  --bg-input:        #eae5ca;
-  --bg-hover:        #e0dbae;
-  --bg-active:       #d4ce9c;
-  --accent:          #e07a5f;
-  --accent-dim:      #c3644b;
-  --online:          #81b29a;
-  --border:          rgba(61, 90, 128, 0.08);
-  --border-strong:   rgba(61, 90, 128, 0.15);
-  --text-primary:    #2f3e46;
-  --text-secondary:  #5c6b73;
-  --text-meta:       #8b9a9a;
-  --text-muted:      #8b9a9a;
-  --text-out:        #ffffff;
-  --font-display:    'DM Sans', sans-serif;
-  --font-body:       'DM Sans', sans-serif;
-  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
-}
-
 [data-theme="sunset"] {
   --bg-base:         #140e11;
   --bg-sidebar:      #1c1318;
@@ -197,26 +173,51 @@
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
 }
 
-/* 4. 🍦 PASTEL DREAM (Limpio, suave y minimalista) */
+/* 🍵 MATCHA LATTE (Corregido: Mayor contraste y descanso visual) */
+[data-theme="matcha"] {
+  --bg-base:         #f2efdf; /* Crema ligeramente más denso */
+  --bg-sidebar:      #e5e1cc;
+  --bg-chat:         #f2efdf;
+  --bg-bubble-in:    #ded9bc;
+  --bg-bubble-out:   #3d5a80; /* Azul pizarra */
+  --bg-input:        #e2ddc4;
+  --bg-hover:        #d6cea7;
+  --bg-active:       #c9bf93;
+  --accent:          #ca5d41; /* Terracota oscurecido para resaltar */
+  --accent-dim:      #a7452e;
+  --online:          #4f8c72; /* Verde oscuro para que se note en fondo claro */
+  --border:          rgba(0, 0, 0, 0.06);
+  --border-strong:   rgba(0, 0, 0, 0.12);
+  --text-primary:    #1e293b; /* Texto principal oscuro */
+  --text-secondary:  #475569; /* Texto secundario legible */
+  --text-meta:       #64748b;
+  --text-muted:      #64748b;
+  --text-out:        #ffffff; /* El texto dentro de la burbuja azul es blanco */
+  --font-display:    'DM Sans', sans-serif;
+  --font-body:       'DM Sans', sans-serif;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
+}
+
+/* 🍦 PASTEL DREAM (Corregido: Estilo papel suave mate, cero brillo molesto) */
 [data-theme="pastel"] {
-  --bg-base:         #f8f9fa;
-  --bg-sidebar:      #f1f3f5;
-  --bg-chat:         #f8f9fa;
-  --bg-bubble-in:    #e9ecef;
-  --bg-bubble-out:   #ffb5a7; /* Salmón dulce pastel */
-  --bg-input:        #edf2f7;
-  --bg-hover:        #e2e8f0;
-  --bg-active:       #cbd5e1;
-  --accent:          #4a90e2; /* Azul pastel vivo */
-  --accent-dim:      #2b6cb0;
-  --online:          #66bb6a;
-  --border:          rgba(0, 0, 0, 0.04);
-  --border-strong:   rgba(0, 0, 0, 0.08);
-  --text-primary:    #2d3748;
-  --text-secondary:  #718096;
-  --text-meta:       #a0aec0;
-  --text-muted:      #a0aec0;
-  --text-out:        #2d3748;
+  --bg-base:         #f4f5f6; /* Gris papel mate */
+  --bg-sidebar:      #eaeced;
+  --bg-chat:         #f4f5f6;
+  --bg-bubble-in:    #e1e4e6;
+  --bg-bubble-out:   #e29587; /* Salmón vintage con mejor contraste */
+  --bg-input:        #e4e7e9;
+  --bg-hover:        #d5dadc;
+  --bg-active:       #c2c9cc;
+  --accent:          #2b6cb0; /* Azul rey suave */
+  --accent-dim:      #1a4976;
+  --online:          #388e3c;
+  --border:          rgba(0, 0, 0, 0.05);
+  --border-strong:   rgba(0, 0, 0, 0.1);
+  --text-primary:    #2d3748; /* Texto principal oscuro */
+  --text-secondary:  #4a5568; /* Texto secundario legible */
+  --text-meta:       #718096;
+  --text-muted:      #718096;
+  --text-out:        #2d3748; /* Texto de salida oscuro */
   --font-display:    'Outfit', sans-serif;
   --font-body:       'Outfit', sans-serif;
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
@@ -270,6 +271,106 @@
   --font-display:    'Cormorant Garamond', Georgia, serif;
   --font-body:       'Outfit', sans-serif;
   --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
+}
+
+/* 7. 🖤 PURE AMOLED (Negro absoluto, ideal para ahorrar batería y descansar la vista) */
+[data-theme="amoled"] {
+  --bg-base:         #000000;
+  --bg-sidebar:      #050505;
+  --bg-chat:         #000000;
+  --bg-bubble-in:    #121212;
+  --bg-bubble-out:   #ffffff; /* Burbujas de salida blancas */
+  --bg-input:        #0a0a0a;
+  --bg-hover:        #161616;
+  --bg-active:       #222222;
+  --accent:          #ffffff; /* Detalles minimalistas en blanco puro */
+  --accent-dim:      #888888;
+  --online:          #00e676;
+  --border:          rgba(255, 255, 255, 0.08);
+  --border-strong:   rgba(255, 255, 255, 0.15);
+  --text-primary:    #ffffff;
+  --text-secondary:  #aaaaaa;
+  --text-meta:       #666666;
+  --text-muted:      #666666;
+  --text-out:        #000000; /* Texto de salida negro sobre burbuja blanca */
+  --font-display:    'Space Mono', monospace;
+  --font-body:       'Outfit', sans-serif;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
+}
+
+/* 8. 🐳 ATLANTIS (Tonos turquesa y azul marino profundo) */
+[data-theme="atlantis"] {
+  --bg-base:         #05131a;
+  --bg-sidebar:      #091c26;
+  --bg-chat:         #05131a;
+  --bg-bubble-in:    #0e2a38;
+  --bg-bubble-out:   #00b4d8; /* Turquesa brillante */
+  --bg-input:        #0b2330;
+  --bg-hover:        #123447;
+  --bg-active:       #164159;
+  --accent:          #90e0ef;
+  --accent-dim:      #0077b6;
+  --online:          #00f5d4;
+  --border:          rgba(144, 224, 239, 0.08);
+  --border-strong:   rgba(144, 224, 239, 0.18);
+  --text-primary:    #e0f7fa;
+  --text-secondary:  #8ecae6;
+  --text-meta:       #5c8d9e;
+  --text-muted:      #5c8d9e;
+  --text-out:        #05131a;
+  --font-display:    'Outfit', sans-serif;
+  --font-body:       'Outfit', sans-serif;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
+}
+
+/* 9. 🎃 HALLOWEEN NIGHT (Estilo gótico moderno, calabaza y ceniza) */
+[data-theme="halloween"] {
+  --bg-base:         #0f0f12;
+  --bg-sidebar:      #16161c;
+  --bg-chat:         #0f0f12;
+  --bg-bubble-in:    #23232c;
+  --bg-bubble-out:   #f77f00; /* Naranja calabaza */
+  --bg-input:        #1b1b22;
+  --bg-hover:        #272732;
+  --bg-active:       #323240;
+  --accent:          #fcbf49; /* Amarillo místico */
+  --accent-dim:      #d62828;
+  --online:          #00f5d4;
+  --border:          rgba(247, 127, 0, 0.08);
+  --border-strong:   rgba(247, 127, 0, 0.18);
+  --text-primary:    #f4f4f6;
+  --text-secondary:  #9ea0a9;
+  --text-meta:       #656770;
+  --text-muted:      #656770;
+  --text-out:        #0f0f12;
+  --font-display:    'Cormorant Garamond', Georgia, serif;
+  --font-body:       'Outfit', sans-serif;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --transition: 0.18s ease;
+}
+
+/* 10. 🧪 TOXIC CYBER (Modo hacker / terminal de comandos retro) */
+[data-theme="toxic"] {
+  --bg-base:         #0a0f0d;
+  --bg-sidebar:      #101714;
+  --bg-chat:         #0a0f0d;
+  --bg-bubble-in:    #18231f;
+  --bg-bubble-out:   #1b4332;
+  --bg-input:        #121c18;
+  --bg-hover:        #1d2d26;
+  --bg-active:       #273e34;
+  --accent:          #39ff14; /* Verde neón tóxico */
+  --accent-dim:      #2b9348;
+  --online:          #39ff14;
+  --border:          rgba(57, 255, 20, 0.08);
+  --border-strong:   rgba(57, 255, 20, 0.2);
+  --text-primary:    #daf7dc;
+  --text-secondary:  #70a37f;
+  --text-meta:       #476a52;
+  --text-muted:      #476a52;
+  --text-out:        #39ff14;
+  --font-display:    'Space Mono', monospace;
+  --font-body:       'Space Mono', monospace;
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --transition: 0.15s ease; /* Bordes rectos tipo terminal */
 }
 
 body {

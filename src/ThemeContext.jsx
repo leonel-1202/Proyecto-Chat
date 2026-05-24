@@ -12,6 +12,10 @@ export const THEMES = [
     { id: "pastel",    label: "Pastel Dream", preview: "#ffb5a7" },
     { id: "nordic",    label: "Nordic Wood",  preview: "#4f6d65" },
     { id: "mocha",     label: "Mocha Vintage",preview: "#d4a373" },
+    { id: "amoled",    label: "Pure Amoled",  preview: "#ffffff" },
+    { id: "atlantis",  label: "Atlantis",     preview: "#00b4d8" },
+    { id: "halloween", label: "Halloween",    preview: "#f77f00" },
+    { id: "toxic",     label: "Toxic Cyber",  preview: "#39ff14" },
 ];
 
 const ThemeContext = createContext();
