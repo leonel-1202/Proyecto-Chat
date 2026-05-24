@@ -57,8 +57,32 @@ if (process.env.NODE_ENV === 'production') {
 
 const connectedUsers = new Map();
 
+const { OpenAI } = require('openai');
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+async function obtenerRespuestaInteligente(mensajeUsuario) {
+  const completion = await openai.chat.completions.create({
+    messages: [
+      { role: "system", content: "Eres un asistente de Nexus, una plataforma de chat web. Responde de forma amable y concisa." },
+      { role: "user", content: mensajeUsuario }
+    ],
+    model: "gpt-4o",
+  });
+
+  return completion.choices[0].message.content;
+}
+
 io.on('connection', (socket) => {
   console.log('🟢 Cliente conectado:', socket.id);
+
+  socket.on('send_message', async (data) => {
+    await guardarMensaje(data);
+    const respuestaIA = await obtenerRespuestaInteligente(data.texto);
+    io.emit('receive_message', { usuario: 'Nexus-IA', texto: respuestaIA });
+});
 
   socket.on('register', (phone) => {
     connectedUsers.set(phone, socket.id);

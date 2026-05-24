@@ -22,17 +22,6 @@ const BOT_PHONE    = "+570000000000";
 const BOT_NAME     = "Nexus-IA 🤖";
 const BOT_INITIALS = "NI";
 
-const BOT_RESPONSES = [
-  "¡Hola! Soy el bot de demostración de Nexus 👋",
-  "Puedes enviarme cualquier mensaje y te responderé automáticamente.",
-  "¡Las respuestas en tiempo real funcionan con Socket.io! ⚡",
-  "Puedes añadir contactos reales con el botón '+' en la barra lateral.",
-  "Interesante lo que dices 🤔", "¿En serio? Cuéntame más 😄",
-  "Entendido! Aquí estoy para lo que necesites.",
-  "Nexus — mensajería en tiempo real 🚀",
-];
-const getBotResponse = () => BOT_RESPONSES[Math.floor(Math.random() * BOT_RESPONSES.length)];
-
 function nowTime() {
   return new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
 }
@@ -356,23 +345,28 @@ export default function ChatApp() {
     setChats((prev) => prev.map((c) => c.id === selectedId ? { ...c, messages: [...c.messages, msgData] } : c));
   }, [selectedId]);
 
-  const send = () => {
+const send = () => {
     const trimmed = text.trim();
     if (!trimmed || !selectedId) return;
-    const msgData = { id: Date.now(), chatId: selectedId, type: "out", text: trimmed, time: nowTime(), sender: usuario.numero, status: "sent", replyTo: replyMsg?._id || null };
+
+    const msgData = { 
+        id: Date.now(), 
+        chatId: selectedId, 
+        type: "out", 
+        text: trimmed, 
+        time: nowTime(), 
+        sender: usuario.numero, 
+        status: "sent", 
+        replyTo: replyMsg?._id || null 
+    };
+
     addOptimisticMessage(msgData);
-    setText(""); setReplyMsg(null);
+    setText(""); 
+    setReplyMsg(null);
     inputRef.current?.focus();
-    if (selectedId === BOT_CHAT_ID) {
-      setTimeout(() => {
-        setChats((prev) => prev.map((c) => c.id === BOT_CHAT_ID
-          ? { ...c, messages: [...c.messages, { chatId: BOT_CHAT_ID, type: "in", text: getBotResponse(), time: nowTime(), sender: BOT_PHONE, status: "read", id: Date.now() + 1 }] }
-          : c));
-      }, 800 + Math.random() * 800);
-    } else {
-      socket.emit("send_message", msgData);
-    }
-  };
+
+    socket.emit("send_message", msgData);
+};
 
   const sendMedia = (mediaObj = mediaPreview, cap = caption) => {
     if (!mediaObj || !selectedId) return;
