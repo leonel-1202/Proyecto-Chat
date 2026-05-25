@@ -205,11 +205,6 @@ export default function ChatApp() {
   const typingTimer     = useRef();
   const stopTypingTimer = useRef();
   const msgRefs         = useRef({});
-  const selectedIdRef   = useRef(selectedId);
-
-  useEffect(() => {
-    selectedIdRef.current = selectedId;
-  }, [selectedId]);
 
   const chat          = chats.find((c) => c.id === selectedId);
   const filteredChats = chats.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
@@ -248,16 +243,12 @@ export default function ChatApp() {
   }, [usuario.numero]);
 
   useEffect(() => {
-socket.on("connect", () => {
-  console.log("✅ Socket conectado:", socket.id);  // ← agrega
-  socket.emit("register", usuario.numero);
-  socket.emit("join_chat", BOT_CHAT_ID);
-});
+    socket.connect();
+    socket.emit("register", usuario.numero);
+    chats.forEach((c) => { if (c.chatId) socket.emit("join_chat", c.chatId); });
 
-socket.on("new_message", (msg) => {
-  console.log("📩 new_message:", msg.chatId, msg.sender);  // ← agrega
-  const miNumero = usuario.numero;
-  // ...
+    socket.on("new_message", (msg) => {
+      const miNumero = usuario.numero;
 
       if (msg.sender !== miNumero && document.visibilityState !== "visible") {
         badgeInc();
@@ -279,7 +270,7 @@ socket.on("new_message", (msg) => {
         return { ...c, messages: [...msgs, msg] };
       }));
 
-      if (msg.chatId === selectedIdRef.current && msg.sender !== miNumero)
+      if (msg.chatId === selectedId && msg.sender !== miNumero)
         socket.emit("mark_read", { messageIds: [msg._id], chatId: msg.chatId, phone: miNumero });
     });
 
@@ -318,7 +309,7 @@ socket.on("new_message", (msg) => {
       "user_online","user_offline","new_conversation","message_edited","message_deleted","chat_cleared"]
         .forEach((ev) => socket.off(ev));
     };
-  }, [usuario.numero, usuario.nombre]);
+  }, [usuario.numero, usuario.nombre, selectedId]);
 
   useEffect(() => {
     setChats((prev) => prev.map((c) => ({ ...c, online: c.chatId === BOT_CHAT_ID ? true : onlineUsers.has(c.phone) })));
@@ -354,28 +345,28 @@ socket.on("new_message", (msg) => {
     setChats((prev) => prev.map((c) => c.id === selectedId ? { ...c, messages: [...c.messages, msgData] } : c));
   }, [selectedId]);
 
-  const send = () => {
+const send = () => {
     const trimmed = text.trim();
     if (!trimmed || !selectedId) return;
 
-    const msgData = {
-      id: Date.now(),
-      chatId: selectedId,
-      type: "out",
-      text: trimmed,
-      time: nowTime(),
-      sender: usuario.numero,
-      status: "sent",
-      replyTo: replyMsg?._id || null
+    const msgData = { 
+        id: Date.now(), 
+        chatId: selectedId, 
+        type: "out", 
+        text: trimmed, 
+        time: nowTime(), 
+        sender: usuario.numero, 
+        status: "sent", 
+        replyTo: replyMsg?._id || null 
     };
 
     addOptimisticMessage(msgData);
-    setText("");
+    setText(""); 
     setReplyMsg(null);
     inputRef.current?.focus();
 
     socket.emit("send_message", msgData);
-  };
+};
 
   const sendMedia = (mediaObj = mediaPreview, cap = caption) => {
     if (!mediaObj || !selectedId) return;
