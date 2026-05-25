@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
-const GIPHY_KEY = import.meta.env.VITE_GIPHY_KEY || "dc6zaTOxFJmzC";
+const GIPHY_KEY = import.meta.env.VITE_GIPHY_KEY || "Y6SJIuvzGkrns5hcg6kM7zCLHWZH9EPG";
 
 const TRENDING_URL = `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_KEY}&limit=12&rating=g`;
 const SEARCH_URL   = (q) =>
