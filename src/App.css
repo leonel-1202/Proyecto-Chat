@@ -791,53 +791,35 @@ body {
   overflow: hidden;
 }
 
-/* ==========================================================================
-   1. REGISTRO DE LA VARIABLE DE ONDA
-   ========================================================================== */
 @property --wave-size {
   syntax: '<percentage>';
-  inherits: true; /* Cambiado a true para que todo el documento comparta el mismo valor */
+  inherits: true;
   initial-value: 0%;
 }
 
-/* ==========================================================================
-   2. CONFIGURACIÓN DEL CONTENEDOR GLOBAL (Toda la pantalla)
-   ========================================================================== */
 body {
   position: relative;
   overflow: hidden;
   background-color: var(--bg-base);
-  /* Transición de respaldo para el fondo base */
   transition: background-color 0.9s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* ==========================================================================
-   3. DISPARADOR AL CAMBIAR EL TEMA (Más lento y expansivo)
-   ========================================================================== */
 [data-theme] {
-  /* Al cambiar el tema, la variable viaja suavemente durante 0.9 segundos */
   transition: --wave-size 0.9s cubic-bezier(0.25, 1, 0.5, 1);
   --wave-size: 160%;
 }
 
-/* ==========================================================================
-   4. APLICACIÓN DE LA TRANSICIÓN A TODA LA INTERFAZ
-   ========================================================================== */
-/* Aquí incluimos la barra lateral, ventana de chat, inputs y las tarjetas/burbujas */
 body,
 .sidebar, 
 .chat-window, 
 .input-field,
 .bubble {
-  /* El secreto premium: un transition-delay de 0.1s permite que la onda 
-     nazca en el centro antes de que los componentes laterales cambien de golpe */
   transition: 
     background-color 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.1s,
     border-color 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.1s,
     color 0.4s ease;
 }
 
-/* Para maximizar el efecto en las burbujas internas del chat */
 .bubble {
   transition: 
     background-color 0.6s cubic-bezier(0.25, 1, 0.5, 1) 0.2s,
