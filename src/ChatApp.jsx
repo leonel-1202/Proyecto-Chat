@@ -252,6 +252,11 @@ export default function ChatApp() {
     socket.emit("register", usuario.numero);
     socket.emit("join_chat", BOT_CHAT_ID);
 
+    socket.on("connect", () => {
+    socket.emit("register", usuario.numero);
+    socket.emit("join_chat", BOT_CHAT_ID);
+  });
+
     socket.on("new_message", (msg) => {
       const miNumero = usuario.numero;
 
