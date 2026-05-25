@@ -5,6 +5,7 @@ import { useNotifications } from "./hooks/useNotifications";
 import { useLastSeen, formatLastSeen } from "./hooks/useLastSeen";
 import { useCloudinary, MAX_SIZE_MB } from "./hooks/useCloudinary";
 import { useBadge } from "./hooks/useBadge";
+import { useWebRTC } from "./hooks/useWebRTC";
 import ChatItem from "./componentes/ChatItem";
 import Bubble from "./componentes/Bubble";
 import Avatar from "./componentes/Avatar";
@@ -14,6 +15,7 @@ import AddContactModal from "./componentes/AddContactModal";
 import Stories from "./componentes/Stories";
 import UploadProgress from "./componentes/UploadProgress";
 import UserProfilePanel from "./componentes/UserProfilePanel";
+import CallScreen from "./componentes/CallScreen";
 import { getMensajes, getConversaciones, clearChat } from "./api";
 import socket from "./socket";
 
@@ -206,12 +208,15 @@ export default function ChatApp() {
   const stopTypingTimer = useRef();
   const msgRefs         = useRef({});
 
+  // ── WebRTC ──────────────────────────────────────────────────────────────────
+  const webrtc = useWebRTC({ usuario, chats });
+
   const chat          = chats.find((c) => c.id === selectedId);
   const filteredChats = chats.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
 
   const headerStatus = () => {
     if (!chat) return "";
-    if (chat.isBot) return "Bot de demostración · siempre activo";
+    if (chat.isBot) return "IA con Groq · siempre activo";
     if (typing) return "escribiendo...";
     const s = getStatus(chat.phone);
     if (s?.online) return "en línea";
@@ -225,10 +230,7 @@ export default function ChatApp() {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, []);
 
-  useEffect(() => {
-    if (selectedId) badgeReset();
-  }, [selectedId]);
-
+  useEffect(() => { if (selectedId) badgeReset(); }, [selectedId]);
   useEffect(() => { requestPermission(); }, []);
 
   useEffect(() => {
@@ -249,13 +251,8 @@ export default function ChatApp() {
 
     socket.on("new_message", (msg) => {
       const miNumero = usuario.numero;
-
-      if (msg.sender !== miNumero && document.visibilityState !== "visible") {
-        badgeInc();
-      }
-      if (msg.sender !== miNumero) {
-        notify(msg.sender || "Nuevo mensaje", msg.text || "📎", msg.chatId);
-      }
+      if (msg.sender !== miNumero && document.visibilityState !== "visible") badgeInc();
+      if (msg.sender !== miNumero) notify(msg.sender || "Nuevo mensaje", msg.text || "📎", msg.chatId);
 
       setChats((prev) => prev.map((c) => {
         if (c.id !== msg.chatId) return c;
@@ -287,11 +284,9 @@ export default function ChatApp() {
     socket.on("message_deleted", ({ messageId, forEveryone }) => {
       setChats((prev) => prev.map((c) => ({ ...c, messages: c.messages.map((m) => String(m._id || m.id) === String(messageId) ? { ...m, deleted: true, text: forEveryone ? "" : m.text } : m) })));
     });
-
     socket.on("chat_cleared", ({ chatId }) => {
       setChats((prev) => prev.map((c) => c.id === chatId ? { ...c, messages: [] } : c));
     });
-
     socket.on("typing", ({ phone }) => {
       if (phone !== usuario.numero) { setTyping(true); clearTimeout(typingTimer.current); typingTimer.current = setTimeout(() => setTyping(false), 2500); }
     });
@@ -306,7 +301,7 @@ export default function ChatApp() {
 
     return () => {
       ["new_message","messages_read","message_reaction","typing","stop_typing",
-      "user_online","user_offline","new_conversation","message_edited","message_deleted","chat_cleared"]
+       "user_online","user_offline","new_conversation","message_edited","message_deleted","chat_cleared"]
         .forEach((ev) => socket.off(ev));
     };
   }, [usuario.numero, usuario.nombre, selectedId]);
@@ -346,28 +341,20 @@ export default function ChatApp() {
     setChats((prev) => prev.map((c) => c.id === selectedId ? { ...c, messages: [...c.messages, msgData] } : c));
   }, [selectedId]);
 
-const send = () => {
+  const send = () => {
     const trimmed = text.trim();
     if (!trimmed || !selectedId) return;
-
-    const msgData = { 
-        id: Date.now(), 
-        chatId: selectedId, 
-        type: "out", 
-        text: trimmed, 
-        time: nowTime(), 
-        sender: usuario.numero, 
-        status: "sent", 
-        replyTo: replyMsg?._id || null 
+    const msgData = {
+      id: Date.now(), chatId: selectedId, type: "out",
+      text: trimmed, time: nowTime(),
+      sender: usuario.numero, status: "sent",
+      replyTo: replyMsg?._id || null,
     };
-
     addOptimisticMessage(msgData);
-    setText(""); 
-    setReplyMsg(null);
+    setText(""); setReplyMsg(null);
     inputRef.current?.focus();
-
     socket.emit("send_message", msgData);
-};
+  };
 
   const sendMedia = (mediaObj = mediaPreview, cap = caption) => {
     if (!mediaObj || !selectedId) return;
@@ -403,9 +390,7 @@ const send = () => {
       await clearChat(selectedId);
       socket.emit("clear_chat", { chatId: selectedId, phone: usuario.numero });
       setChats((prev) => prev.map((c) => c.id === selectedId ? { ...c, messages: [] } : c));
-    } catch (err) {
-      alert("No se pudo vaciar el chat.");
-    }
+    } catch (err) { alert("No se pudo vaciar el chat."); }
   };
 
   const handleReact  = (messageId, emoji) => { if (selectedId !== BOT_CHAT_ID) socket.emit("react_message", { messageId, emoji, phone: usuario.numero, chatId: selectedId }); };
@@ -434,14 +419,31 @@ const send = () => {
   const handleSelectChat = (id) => {
     setSelectedId(id); setReplyMsg(null); setShowSearch(false);
     setMediaPreview(null); setShowGif(false); setShowEmojiPicker(false);
-    setShowChatMenu(false);
-    badgeReset();
+    setShowChatMenu(false); badgeReset();
   };
 
   return (
     <div className="app">
+      <CallScreen
+        callState={webrtc.callState}
+        callType={webrtc.callType}
+        remoteUser={webrtc.remoteUser}
+        isMuted={webrtc.isMuted}
+        isCamOff={webrtc.isCamOff}
+        callDuration={webrtc.callDuration}
+        formatDuration={webrtc.formatDuration}
+        localVideoRef={webrtc.localVideoRef}
+        remoteVideoRef={webrtc.remoteVideoRef}
+        onAccept={webrtc.acceptCall}
+        onReject={webrtc.rejectCall}
+        onHangUp={webrtc.hangUp}
+        onMute={webrtc.toggleMute}
+        onCam={webrtc.toggleCam}
+        CALL_STATE={webrtc.CALL_STATE}
+      />
+
       {showAddModal && <AddContactModal myPhone={usuario.numero} myNombre={usuario.nombre} onAdd={handleAddContact} onClose={() => setShowAddModal(false)} />}
-      {showProfile && <UserProfilePanel onClose={() => setShowProfile(false)} />}
+      {showProfile  && <UserProfilePanel onClose={() => setShowProfile(false)} />}
 
       <aside className="sidebar">
         <div className="sidebar-top">
@@ -465,8 +467,7 @@ const send = () => {
           </div>
         )}
 
-        <div className="sidebar-user-bar" onClick={() => setShowProfile(true)} title="Ver mi perfil"
-          style={{ cursor: "pointer" }}>
+        <div className="sidebar-user-bar" onClick={() => setShowProfile(true)} title="Ver mi perfil" style={{ cursor: "pointer" }}>
           <span className="user-dot" />
           <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {usuario.nombre !== usuario.numero ? usuario.nombre : usuario.numero}
@@ -502,9 +503,7 @@ const send = () => {
         <main className={`chat ${selectedId ? "open" : ""}`} style={{ position: "relative" }}>
 
           <div className="chat-header">
-            <button className="icon-btn btn-back" onClick={() => setSelectedId(null)} title="Volver">
-              <Ico.Back />
-            </button>
+            <button className="icon-btn btn-back" onClick={() => setSelectedId(null)} title="Volver"><Ico.Back /></button>
             <Avatar initials={chat.initials} online={chat.online || getStatus(chat.phone)?.online} isGroup={chat.isGroup} />
             <div className="chat-header-info">
               <div className="chat-header-name">{chat.name}</div>
@@ -514,15 +513,27 @@ const send = () => {
             </div>
             <div className="header-actions" style={{ position: "relative" }}>
               <button className="icon-btn" onClick={() => setShowSearch((v) => !v)} style={{ color: showSearch ? "var(--accent)" : undefined }}><Ico.Search /></button>
-              <button className="icon-btn" title="Llamada" onClick={() => alert("Próximamente — Parte 5")}><Ico.Phone /></button>
-              <button className="icon-btn" title="Videollamada" onClick={() => alert("Próximamente — Parte 5")}><Ico.Video /></button>
-              <button className="icon-btn" onClick={() => setShowChatMenu((v) => !v)}
-                style={{ color: showChatMenu ? "var(--accent)" : undefined }}>
-                <Ico.Dots />
+
+              <button
+                className="icon-btn"
+                title={chat.isBot ? "No disponible para el bot" : "Llamada de voz"}
+                onClick={() => !chat.isBot && webrtc.startCall(chat.phone, "audio")}
+                style={{ opacity: chat.isBot ? 0.3 : 1, cursor: chat.isBot ? "not-allowed" : "pointer" }}
+              >
+                <Ico.Phone />
               </button>
-              {showChatMenu && (
-                <ChatMenu onClear={handleClearChat} onClose={() => setShowChatMenu(false)} />
-              )}
+
+              <button
+                className="icon-btn"
+                title={chat.isBot ? "No disponible para el bot" : "Videollamada"}
+                onClick={() => !chat.isBot && webrtc.startCall(chat.phone, "video")}
+                style={{ opacity: chat.isBot ? 0.3 : 1, cursor: chat.isBot ? "not-allowed" : "pointer" }}
+              >
+                <Ico.Video />
+              </button>
+
+              <button className="icon-btn" onClick={() => setShowChatMenu((v) => !v)} style={{ color: showChatMenu ? "var(--accent)" : undefined }}><Ico.Dots /></button>
+              {showChatMenu && <ChatMenu onClear={handleClearChat} onClose={() => setShowChatMenu(false)} />}
             </div>
           </div>
 
@@ -534,7 +545,7 @@ const send = () => {
                     <div style={{ textAlign: "center", marginTop: "3rem" }}>
                       <div style={{ fontSize: "2rem", marginBottom: 8 }}>💬</div>
                       <p style={{ color: "var(--text-muted)", fontSize: "0.82rem" }}>
-                        {chat.isBot ? "Escríbele algo al bot para empezar" : `Di hola a ${chat.name}`}
+                        {chat.isBot ? "Escríbele algo a la IA para empezar" : `Di hola a ${chat.name}`}
                       </p>
                     </div>
                   )}
@@ -559,7 +570,6 @@ const send = () => {
           </div>
 
           {showSearch && <SearchBar messages={chat.messages} onClose={() => setShowSearch(false)} onJump={handleJump} />}
-
           {uploading && <UploadProgress progress={progress} fileName={uploadFileName} onCancel={() => { resetUpload(); setPendingFile(null); }} />}
           {!uploading && <MediaPreviewBar media={mediaPreview} caption={caption} onCaptionChange={setCaption} onSend={sendMedia} onCancel={() => setMediaPreview(null)} />}
           <ReplyBar msg={replyMsg} onCancel={() => setReplyMsg(null)} />
@@ -581,7 +591,7 @@ const send = () => {
             </div>
 
             <input ref={inputRef} value={text} onChange={handleTyping}
-              placeholder={chat.isBot ? "Escríbele algo al bot..." : "Escribe un mensaje..."}
+              placeholder={chat.isBot ? "Escríbele algo a la IA..." : "Escribe un mensaje..."}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
               disabled={uploading}
             />
