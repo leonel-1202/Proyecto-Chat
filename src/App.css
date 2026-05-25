@@ -791,25 +791,54 @@ body {
   overflow: hidden;
 }
 
-@keyframes enableTransitions {
-  from {
-    transition: none !important;
-  }
-  to {
-    transition: 
-      background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-      border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-      color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-      box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  }
+@property --wave-size {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
 }
 
-body, 
+body {
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  
+  background-color: var(--bg-base);
+  
+  mask-image: radial-gradient(
+    circle at 50% 50%, 
+    black var(--wave-size), 
+    transparent calc(var(--wave-size) + 15%)
+  );
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 50%, 
+    black var(--wave-size), 
+    transparent calc(var(--wave-size) + 15%)
+  );
+  
+  transition: --wave-size 0.6s cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+[data-theme] {
+  --wave-size: 150%;
+}
+
 .sidebar, 
 .chat-window, 
 .bubble, 
 .input-field {
-  animation: enableTransitions 0.1s linear 0.5s forwards;
+  transition: 
+    background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.3s ease;
 }
 
 @keyframes fadeUp {
