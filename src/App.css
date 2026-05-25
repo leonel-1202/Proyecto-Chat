@@ -791,19 +791,25 @@ body {
   overflow: hidden;
 }
 
-body {
-  transition: 
-    background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+@keyframes enableTransitions {
+  from {
+    transition: none !important;
+  }
+  to {
+    transition: 
+      background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
 }
 
-.sidebar, .chat-window, .bubble, .input-field {
-  transition: 
-    background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+body, 
+.sidebar, 
+.chat-window, 
+.bubble, 
+.input-field {
+  animation: enableTransitions 0.1s linear 0.5s forwards;
 }
 
 @keyframes fadeUp {
