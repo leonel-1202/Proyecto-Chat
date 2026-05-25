@@ -68,10 +68,13 @@ async function obtenerRespuestaInteligente(mensajeUsuario) {
     throw new Error('GROQ_API_KEY no definida');
   }
 
-  const response = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
-    messages: [{ role: 'user', content: mensajeUsuario }],
-  });
+const response = await groq.chat.completions.create({
+  model: 'llama-3.3-70b-versatile',
+  messages: [
+    { role: 'system', content: 'Eres un asistente útil, te llamas Nexus. Responde siempre en español.' },
+    { role: 'user', content: mensajeUsuario }
+  ],
+});
 
   return response.choices[0].message.content;
 }
