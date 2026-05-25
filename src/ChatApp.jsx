@@ -249,13 +249,11 @@ export default function ChatApp() {
 
   useEffect(() => {
     socket.connect();
-    socket.emit("register", usuario.numero);
-    socket.emit("join_chat", BOT_CHAT_ID);
 
     socket.on("connect", () => {
-    socket.emit("register", usuario.numero);
-    socket.emit("join_chat", BOT_CHAT_ID);
-  });
+      socket.emit("register", usuario.numero);
+      socket.emit("join_chat", BOT_CHAT_ID);
+    });
 
     socket.on("new_message", (msg) => {
       const miNumero = usuario.numero;
