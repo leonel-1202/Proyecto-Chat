@@ -113,9 +113,11 @@ io.on('connection', socket => {
 
       io.to(`chat_${data.chatId}`).emit('new_message', saved);
 
-      if (data.chatId === 'bot_nexus') {
-        try {
-          const respuestaIA = await obtenerRespuestaInteligente(data.text);
+if (data.chatId === 'bot_nexus') {
+  console.log('🤖 Bot activado');  // ← agrega
+  try {
+    const respuestaIA = await obtenerRespuestaInteligente(data.text);
+    console.log('✅ Gemini OK');  // ← agrega
 
           const respuestaGuardada = await Message.create({
             chatId: 'bot_nexus',

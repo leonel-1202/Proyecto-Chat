@@ -248,15 +248,16 @@ export default function ChatApp() {
   }, [usuario.numero]);
 
   useEffect(() => {
-    socket.connect();
+socket.on("connect", () => {
+  console.log("✅ Socket conectado:", socket.id);  // ← agrega
+  socket.emit("register", usuario.numero);
+  socket.emit("join_chat", BOT_CHAT_ID);
+});
 
-    socket.on("connect", () => {
-      socket.emit("register", usuario.numero);
-      socket.emit("join_chat", BOT_CHAT_ID);
-    });
-
-    socket.on("new_message", (msg) => {
-      const miNumero = usuario.numero;
+socket.on("new_message", (msg) => {
+  console.log("📩 new_message:", msg.chatId, msg.sender);  // ← agrega
+  const miNumero = usuario.numero;
+  // ...
 
       if (msg.sender !== miNumero && document.visibilityState !== "visible") {
         badgeInc();
