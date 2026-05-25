@@ -6,7 +6,7 @@ import { Server } from 'socket.io';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { GoogleGenAI } from '@google/genai';
+import Groq from 'groq-sdk';
 
 dotenv.config();
 
@@ -61,21 +61,19 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GOOGLE_API_KEY
-});
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 async function obtenerRespuestaInteligente(mensajeUsuario) {
-  if (!process.env.GOOGLE_API_KEY) {
-    throw new Error('GOOGLE_API_KEY no definida');
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error('GROQ_API_KEY no definida');
   }
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash',
-    contents: mensajeUsuario
+  const response = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    messages: [{ role: 'user', content: mensajeUsuario }],
   });
 
-  return response.text;
+  return response.choices[0].message.content;
 }
 
 const connectedUsers = new Map();
@@ -128,8 +126,8 @@ io.on('connection', socket => {
           io.to('chat_bot_nexus')
             .emit('new_message', respuestaGuardada);
 
-        } catch (geminiError) {
-          console.error('🔴 Error Gemini REAL:', geminiError);
+        } catch (groqError) {
+          console.error('🔴 Error Groq:', groqError);
         }
       }
 
