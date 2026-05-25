@@ -71,7 +71,7 @@ async function obtenerRespuestaInteligente(mensajeUsuario) {
 const response = await groq.chat.completions.create({
   model: 'llama-3.3-70b-versatile',
   messages: [
-    { role: 'system', content: 'Eres un asistente útil, te llamas Nexus. Responde siempre en español.' },
+    { role: 'system', content: 'Eres un asistente útil, te llamas Nexus y estas en chat grupal abierto donde cualquier número puede interactuar contigo y los demás integrantes. Responde siempre en español.' },
     { role: 'user', content: mensajeUsuario }
   ],
 });
