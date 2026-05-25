@@ -1,29 +1,29 @@
-import express         from 'express';
-import http            from 'http';
-import path            from 'path';
+import express from 'express';
+import http from 'http';
+import path from 'path';
 import { fileURLToPath } from 'url';
-import { Server }      from 'socket.io';
-import mongoose        from 'mongoose';
-import cors            from 'cors';
-import dotenv          from 'dotenv';
+import { Server } from 'socket.io';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
+const __dirname = path.dirname(__filename);
 
-import Message      from './models/Message.js';
-import Group        from './models/Group.js';
-import Status       from './models/Status.js';
+import Message from './models/Message.js';
+import Group from './models/Group.js';
+import Status from './models/Status.js';
 import Conversation from './models/Conversation.js';
 
-import messagesRouter                        from './routes/messages.js';
-import groupsRouter                          from './routes/groups.js';
-import statusRouter                          from './routes/status.js';
-import conversationsRouter, { makeChatId }  from './routes/conversations.js';
+import messagesRouter from './routes/messages.js';
+import groupsRouter from './routes/groups.js';
+import statusRouter from './routes/status.js';
+import conversationsRouter, { makeChatId } from './routes/conversations.js';
 
-const app    = express();
+const app = express();
 const server = http.createServer(app);
 
 const ALLOWED_ORIGINS = [
@@ -41,66 +41,60 @@ app.use(express.json({ limit: '15mb' }));
 
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB conectado'))
-  .catch((err) => console.error('❌ MongoDB error:', err));
+  .then(() => console.log('MongoDB conectado'))
+  .catch((err) => console.error('MongoDB error:', err));
 
-app.use('/api/messages',      messagesRouter);
-app.use('/api/groups',        groupsRouter);
-app.use('/api/status',        statusRouter);
+app.use('/api/messages', messagesRouter);
+app.use('/api/groups', groupsRouter);
+app.use('/api/status', statusRouter);
 app.use('/api/conversations', conversationsRouter);
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist')));
-  app.get(/(.*)/, (req, res, next) => {
-    if (req.path.startsWith('/api')) return next();
+
+  app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../dist/index.html'));
   });
 }
 
-// ── Gemini IA para el bot ─────────────────────────────────────────────────────
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
 
 async function obtenerRespuestaIA(mensajeUsuario) {
   if (!process.env.GOOGLE_API_KEY) throw new Error('GOOGLE_API_KEY no definida');
   const response = await ai.models.generateContent({
-    model:    'gemini-2.5-flash',
+    model: 'gemini-2.5-flash',
     contents: mensajeUsuario,
   });
   return response.text;
 }
 
-// ── Usuarios conectados: phone → socketId ─────────────────────────────────────
 const connectedUsers = new Map();
 
-// ── Hora local Colombia ───────────────────────────────────────────────────────
 const horaActual = () =>
   new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 
 io.on('connection', (socket) => {
-  console.log('🟢 Cliente conectado:', socket.id);
+  console.log('Cliente conectado:', socket.id);
 
-  // ── Registro ───────────────────────────────────────────────────────────────
   socket.on('register', (phone) => {
     connectedUsers.set(phone, socket.id);
     socket.data.phone = phone;
     io.emit('user_online', { phone });
-    console.log(`📱 Registrado: ${phone}`);
   });
 
-  socket.on('join_chat',  (chatId)  => socket.join(`chat_${chatId}`));
+  socket.on('join_chat', (chatId) => socket.join(`chat_${chatId}`));
   socket.on('join_group', (groupId) => socket.join(`group_${groupId}`));
 
-  // ── Crear / abrir conversación ─────────────────────────────────────────────
   socket.on('create_conversation', async ({ myPhone, myNombre, theirPhone, theirNombre }) => {
     try {
       const chatId = makeChatId(myPhone, theirPhone);
-      const conv   = await Conversation.findOneAndUpdate(
+      const conv = await Conversation.findOneAndUpdate(
         { chatId },
         {
           $setOnInsert: {
             chatId,
             participants: [
-              { phone: myPhone,    nombre: myNombre    || myPhone },
+              { phone: myPhone, nombre: myNombre || myPhone },
               { phone: theirPhone, nombre: theirNombre || theirPhone },
             ],
           },
@@ -111,7 +105,6 @@ io.on('connection', (socket) => {
       socket.join(`chat_${chatId}`);
       socket.emit('conversation_ready', conv);
 
-      // Notificar al otro usuario si está conectado
       const theirSocketId = connectedUsers.get(theirPhone);
       if (theirSocketId) {
         const theirSocket = io.sockets.sockets.get(theirSocketId);
@@ -121,22 +114,20 @@ io.on('connection', (socket) => {
         }
       }
     } catch (err) {
-      console.error('Error create_conversation:', err);
       socket.emit('error', { msg: 'No se pudo crear la conversación' });
     }
   });
 
-  // ── Enviar mensaje de texto ────────────────────────────────────────────────
   socket.on('send_message', async (data) => {
     try {
       const saved = await Message.create({
-        chatId:  data.chatId,
-        type:    data.type    || 'out',
-        text:    data.text    || '',
-        media:   data.media   || null,
-        sender:  data.sender,
+        chatId: data.chatId,
+        type: data.type || 'out',
+        text: data.text || '',
+        media: data.media || null,
+        sender: data.sender,
         replyTo: data.replyTo || null,
-        status:  'sent',
+        status: 'sent',
       });
 
       await Conversation.findOneAndUpdate(
@@ -146,41 +137,37 @@ io.on('connection', (socket) => {
 
       io.to(`chat_${data.chatId}`).emit('new_message', saved);
 
-      // Bot IA — solo cuando el chat ES el bot de este usuario específico
-      // El chatId del bot es "bot_nexus" (fijo), el sender identifica quién habla
       if (data.chatId === 'bot_nexus') {
         try {
           const respuestaIA = await obtenerRespuestaIA(data.text);
           const botMsg = await Message.create({
             chatId: 'bot_nexus',
-            type:   'in',
-            text:   respuestaIA,
+            type: 'in',
+            text: respuestaIA,
             sender: '+570000000000',
             status: 'read',
           });
-          // Emitir SOLO al socket que envió el mensaje, no a toda la sala
+
           socket.emit('new_message', botMsg);
         } catch (geminiError) {
-          console.error('🔴 Error Gemini:', geminiError);
+          console.error(geminiError);
         }
       }
     } catch (err) {
-      console.error('Error send_message:', err);
       socket.emit('error', { msg: 'No se pudo enviar el mensaje' });
     }
   });
 
-  // ── Enviar mensaje multimedia ──────────────────────────────────────────────
   socket.on('send_media_message', async (data) => {
     try {
       const saved = await Message.create({
-        chatId:  data.chatId,
-        type:    data.type   || 'out',
-        text:    data.text   || '',
-        media:   data.media,
-        sender:  data.sender,
+        chatId: data.chatId,
+        type: data.type || 'out',
+        text: data.text || '',
+        media: data.media,
+        sender: data.sender,
         replyTo: data.replyTo || null,
-        status:  'sent',
+        status: 'sent',
       });
 
       await Conversation.findOneAndUpdate(
@@ -190,49 +177,47 @@ io.on('connection', (socket) => {
 
       io.to(`chat_${data.chatId}`).emit('new_message', saved);
     } catch (err) {
-      console.error('Error send_media_message:', err);
       socket.emit('error', { msg: 'No se pudo enviar el archivo' });
     }
   });
 
-  // ── Mensaje de grupo ───────────────────────────────────────────────────────
   socket.on('send_group_message', async (data) => {
     try {
       const saved = await Message.create({
         groupId: data.groupId,
-        type:    'out',
-        text:    data.text   || '',
-        media:   data.media  || null,
-        sender:  data.sender,
+        type: 'out',
+        text: data.text || '',
+        media: data.media || null,
+        sender: data.sender,
         replyTo: data.replyTo || null,
-        status:  'sent',
+        status: 'sent',
       });
+
       io.to(`group_${data.groupId}`).emit('new_group_message', saved);
     } catch (err) {
-      console.error('Error send_group_message:', err);
       socket.emit('error', { msg: 'No se pudo enviar el mensaje de grupo' });
     }
   });
 
-  // ── Marcar como leído ──────────────────────────────────────────────────────
   socket.on('mark_read', async ({ messageIds, chatId, groupId, phone }) => {
     try {
       await Message.updateMany(
         { _id: { $in: messageIds }, readBy: { $ne: phone } },
         { $addToSet: { readBy: phone }, $set: { status: 'read' } }
       );
+
       const room = chatId ? `chat_${chatId}` : `group_${groupId}`;
       io.to(room).emit('messages_read', { messageIds, phone });
-    } catch (err) { console.error('Error mark_read:', err); }
+    } catch (err) {}
   });
 
-  // ── Reacciones ─────────────────────────────────────────────────────────────
   socket.on('react_message', async ({ messageId, emoji, phone, chatId, groupId }) => {
     try {
       const msg = await Message.findById(messageId);
       if (!msg) return;
 
       const existing = msg.reactions.find((r) => r.emoji === emoji);
+
       if (existing) {
         if (existing.users.includes(phone)) {
           existing.users = existing.users.filter((u) => u !== phone);
@@ -246,12 +231,12 @@ io.on('connection', (socket) => {
       }
 
       await msg.save();
+
       const room = chatId ? `chat_${chatId}` : `group_${groupId}`;
       io.to(room).emit('message_reaction', { messageId, reactions: msg.reactions });
-    } catch (err) { console.error('Error react_message:', err); }
+    } catch (err) {}
   });
 
-  // ── Editar mensaje ─────────────────────────────────────────────────────────
   socket.on('edit_message', async ({ messageId, text, chatId, groupId }) => {
     try {
       const msg = await Message.findByIdAndUpdate(
@@ -259,36 +244,36 @@ io.on('connection', (socket) => {
         { $set: { text, edited: true } },
         { new: true }
       );
+
       if (!msg) return;
+
       const room = chatId ? `chat_${chatId}` : `group_${groupId}`;
       io.to(room).emit('message_edited', { messageId, text, edited: true });
-    } catch (err) { console.error('Error edit_message:', err); }
+    } catch (err) {}
   });
 
-  // ── Eliminar mensaje ───────────────────────────────────────────────────────
   socket.on('delete_message', async ({ messageId, chatId, groupId, forEveryone }) => {
     try {
       const update = forEveryone
         ? { $set: { deleted: true, text: '', media: null } }
         : { $set: { deleted: true } };
+
       await Message.findByIdAndUpdate(messageId, update);
+
       const room = chatId ? `chat_${chatId}` : `group_${groupId}`;
       io.to(room).emit('message_deleted', { messageId, forEveryone });
-    } catch (err) { console.error('Error delete_message:', err); }
+    } catch (err) {}
   });
 
-  // ── Vaciar chat completo ───────────────────────────────────────────────────
   socket.on('clear_chat', async ({ chatId, phone }) => {
     try {
       await Message.deleteMany({ chatId });
       io.to(`chat_${chatId}`).emit('chat_cleared', { chatId, by: phone });
     } catch (err) {
-      console.error('Error clear_chat:', err);
       socket.emit('error', { msg: 'No se pudo vaciar el chat' });
     }
   });
 
-  // ── Typing ─────────────────────────────────────────────────────────────────
   socket.on('typing', ({ chatId, groupId, phone, nombre }) => {
     const room = chatId ? `chat_${chatId}` : `group_${groupId}`;
     socket.to(room).emit('typing', { phone, nombre });
@@ -299,16 +284,10 @@ io.on('connection', (socket) => {
     socket.to(room).emit('stop_typing', { phone });
   });
 
-  // ── WebRTC — señalización para llamadas ────────────────────────────────────
-  // Solo reenvía mensajes entre peers, no guarda nada en DB
-
   socket.on('call_offer', ({ to, from, nombre, type, offer }) => {
     const toSocketId = connectedUsers.get(to);
-    if (toSocketId) {
-      io.to(toSocketId).emit('call_offer', { from, nombre, type, offer });
-    } else {
-      socket.emit('call_end', { reason: 'unavailable' });
-    }
+    if (toSocketId) io.to(toSocketId).emit('call_offer', { from, nombre, type, offer });
+    else socket.emit('call_end', { reason: 'unavailable' });
   });
 
   socket.on('call_answer', ({ to, from, answer }) => {
@@ -326,16 +305,14 @@ io.on('connection', (socket) => {
     if (toSocketId) io.to(toSocketId).emit('call_end', { from, reason });
   });
 
-  // ── Desconexión ────────────────────────────────────────────────────────────
   socket.on('disconnect', () => {
     const phone = socket.data.phone;
     if (phone) {
       connectedUsers.delete(phone);
       io.emit('user_offline', { phone, lastSeen: new Date().toISOString() });
-      console.log(`🔴 Desconectado: ${phone}`);
     }
   });
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
+server.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
