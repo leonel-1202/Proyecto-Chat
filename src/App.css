@@ -793,51 +793,36 @@ body {
 
 @property --wave-size {
   syntax: '<percentage>';
-  inherits: false;
+  inherits: true;
   initial-value: 0%;
 }
 
 body {
   position: relative;
-  overflow-x: hidden;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -1;
-  
+  overflow: hidden;
   background-color: var(--bg-base);
-  
-  mask-image: radial-gradient(
-    circle at 50% 50%, 
-    black var(--wave-size), 
-    transparent calc(var(--wave-size) + 15%)
-  );
-  -webkit-mask-image: radial-gradient(
-    circle at 50% 50%, 
-    black var(--wave-size), 
-    transparent calc(var(--wave-size) + 15%)
-  );
-  
-  transition: --wave-size 0.6s cubic-bezier(0.1, 0.8, 0.2, 1);
+  transition: background-color 0.9s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 [data-theme] {
-  --wave-size: 150%;
+  transition: --wave-size 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+  --wave-size: 160%;
 }
 
+body,
 .sidebar, 
 .chat-window, 
-.bubble, 
-.input-field {
+.input-field,
+.bubble {
   transition: 
-    background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.1s,
+    border-color 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.1s,
+    color 0.4s ease;
+}
+
+.bubble {
+  transition: 
+    background-color 0.6s cubic-bezier(0.25, 1, 0.5, 1) 0.2s,
     color 0.3s ease;
 }
 
