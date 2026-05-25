@@ -17,7 +17,7 @@ import UserProfilePanel from "./componentes/UserProfilePanel";
 import { getMensajes, getConversaciones, clearChat } from "./api";
 import socket from "./socket";
 
-const BOT_CHAT_ID  = "bot_nexus";
+const getBotChatId = (phone) => `bot_nexus_${phone}`;
 const BOT_PHONE    = "+570000000000";
 const BOT_NAME     = "Nexus-IA 🤖";
 const BOT_INITIALS = "NI";
@@ -172,11 +172,20 @@ export default function ChatApp() {
   const { upload, progress, uploading, error: uploadError, reset: resetUpload } = useCloudinary();
   const { increment: badgeInc, reset: badgeReset } = useBadge();
 
-  const BOT_CHAT = {
-    id: BOT_CHAT_ID, chatId: BOT_CHAT_ID, name: BOT_NAME,
-    phone: BOT_PHONE, initials: BOT_INITIALS, online: true,
-    isGroup: false, messages: [], unread: 0, isBot: true,
-  };
+const botChatId = getBotChatId(usuario.numero);
+
+const BOT_CHAT = {
+  id: botChatId,
+  chatId: botChatId,
+  name: BOT_NAME,
+  phone: BOT_PHONE,
+  initials: BOT_INITIALS,
+  online: true,
+  isGroup: false,
+  messages: [],
+  unread: 0,
+  isBot: true,
+};
 
   const [chats,           setChats]           = useState([BOT_CHAT]);
   const [selectedId,      setSelectedId]      = useState(null);
@@ -407,9 +416,9 @@ const send = () => {
     }
   };
 
-  const handleReact  = (messageId, emoji) => { if (selectedId !== BOT_CHAT_ID) socket.emit("react_message", { messageId, emoji, phone: usuario.numero, chatId: selectedId }); };
+  const handleReact  = (messageId, emoji) => { if (!selectedId?.startsWith("bot_nexus")) socket.emit("react_message", { messageId, emoji, phone: usuario.numero, chatId: selectedId }); };
   const handleEdit   = (messageId, newText) => {
-    if (selectedId === BOT_CHAT_ID) return;
+    if (selectedId?.startsWith("bot_nexus")) return;
     socket.emit("edit_message", { messageId, text: newText, chatId: selectedId });
     setChats((prev) => prev.map((c) => ({ ...c, messages: c.messages.map((m) => String(m._id || m.id) === String(messageId) ? { ...m, text: newText, edited: true } : m) })));
   };
