@@ -16,6 +16,19 @@ export const THEMES = [
     { id: "atlantis",  label: "Atlantis",     preview: "#00b4d8" },
     { id: "halloween", label: "Halloween",    preview: "#f77f00" },
     { id: "toxic",     label: "Toxic Cyber",  preview: "#39ff14" },
+    { id: "sea",       label: "Mar",          preview: "#0ea5e9" },
+    { id: "sunset",    label: "Atardecer",    preview: "#f97316" },
+    { id: "rose",      label: "Rosa",         preview: "#ec4899" },
+    { id: "midnight",  label: "Medianoche",   preview: "#3b82f6" },
+    { id: "golden",    label: "Dorado",       preview: "#eab308" },
+    { id: "heart",     label: "Corazón",      preview: "#ef4444" },
+    { id: "mint",      label: "Menta",        preview: "#10b981" },
+    { id: "lavender",  label: "Lavanda",      preview: "#8b5cf6" },
+    { id: "cyber",     label: "Cyber",        preview: "#06b6d4" },
+    { id: "forest",    label: "Bosque",       preview: "#22c55e" },
+    { id: "ice",       label: "Hielo",        preview: "#38bdf8" },
+    { id: "coffee",    label: "Café",         preview: "#a16207" },
+    { id: "ruby",      label: "Rubí",         preview: "#be123c" }
 ];
 
 const ThemeContext = createContext();
