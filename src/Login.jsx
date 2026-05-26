@@ -1,20 +1,22 @@
 import { useState, useRef, useEffect } from "react";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { auth } from "./utils/firebaseConfig";
 import { useAuth } from "./Auth-Context";
 import { formatPhoneInput, normalizePhone } from "./utils/phoneUtils";
 
 const COUNTRY_CODES = [
-  { code: "+57", flag: "🇨🇴", name: "Colombia",       digits: 10 },
-  { code: "+1",  flag: "🇺🇸", name: "Estados Unidos", digits: 10 },
-  { code: "+52", flag: "🇲🇽", name: "México",         digits: 10 },
-  { code: "+54", flag: "🇦🇷", name: "Argentina",      digits: 10 },
-  { code: "+56", flag: "🇨🇱", name: "Chile",          digits: 9  },
-  { code: "+51", flag: "🇵🇪", name: "Perú",           digits: 9  },
-  { code: "+58", flag: "🇻🇪", name: "Venezuela",      digits: 10 },
-  { code: "+34", flag: "🇪🇸", name: "España",         digits: 9  },
-  { code: "+55", flag: "🇧🇷", name: "Brasil",         digits: 11 },
-  { code: "+44", flag: "🇬🇧", name: "Reino Unido",    digits: 10 },
-  { code: "+49", flag: "🇩🇪", name: "Alemania",       digits: 11 },
-  { code: "+33", flag: "🇫🇷", name: "Francia",        digits: 9  },
+  { code: "+57", flag: "🇨🇴", name: "Colombia", digits: 10 },
+  { code: "+1", flag: "🇺🇸", name: "Estados Unidos", digits: 10 },
+  { code: "+52", flag: "🇲🇽", name: "México", digits: 10 },
+  { code: "+54", flag: "🇦🇷", name: "Argentina", digits: 10 },
+  { code: "+56", flag: "🇨🇱", name: "Chile", digits: 9 },
+  { code: "+51", flag: "🇵🇪", name: "Perú", digits: 9 },
+  { code: "+58", flag: "🇻🇪", name: "Venezuela", digits: 10 },
+  { code: "+34", flag: "🇪🇸", name: "España", digits: 9 },
+  { code: "+55", flag: "🇧🇷", name: "Brasil", digits: 11 },
+  { code: "+44", flag: "🇬🇧", name: "Reino Unido", digits: 10 },
+  { code: "+49", flag: "🇩🇪", name: "Alemania", digits: 11 },
+  { code: "+33", flag: "🇫🇷", name: "Francia", digits: 9 }
 ];
 
 const s = {
@@ -208,6 +210,61 @@ function PhoneInput({ onSubmit }) {
   );
 }
 
+function CodeInput({ onComplete, onBack, phoneNumber }) {
+  const [code, setCode] = useState("");
+  const canSubmit = code.trim().length === 6;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+      <div>
+        <p style={s.title}>Verifica tu número</p>
+        <p style={s.subtitle}>Ingresa el código de 6 dígitos enviado al <span style={{ color: "var(--accent)", fontWeight: 500 }}>{phoneNumber}</span></p>
+      </div>
+
+      <input
+        type="text"
+        placeholder="000000"
+        value={code}
+        onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+        maxLength={6}
+        autoFocus
+        style={{ ...s.input, letterSpacing: "0.5em", textAlign: "center", fontSize: "1.25rem" }}
+        onFocus={(e) => e.target.style.borderColor = "var(--accent-dim)"}
+        onBlur={(e)  => e.target.style.borderColor = "var(--border-strong)"}
+        onKeyDown={(e) => e.key === "Enter" && canSubmit && onComplete(code)}
+      />
+
+      <button
+        style={s.btn(canSubmit)}
+        onClick={() => canSubmit && onComplete(code)}
+        disabled={!canSubmit}
+      >
+        Verificar Código
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+        </svg>
+      </button>
+
+      <button
+        onClick={onBack}
+        style={{
+          background: "none", border: "none", cursor: "pointer",
+          color: "var(--text-secondary)", fontSize: "0.8rem",
+          fontFamily: "var(--font-body)", letterSpacing: "0.03em",
+          display: "flex", alignItems: "center", gap: 6, padding: 0,
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        Regresar
+      </button>
+    </div>
+  );
+}
+
 function NameInput({ onComplete, onBack }) {
   const [nombre, setNombre] = useState("");
   const canSubmit = nombre.trim().length >= 2;
@@ -268,68 +325,215 @@ function NameInput({ onComplete, onBack }) {
 
 export default function Login() {
   const { login } = useAuth();
-  const [step,        setStep]        = useState("phone");
+  const [step, setStep] = useState("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [confirmationResult, setConfirmationResult] = useState(null);
+  const [error, setError] = useState("");
 
-  const handlePhone = (fullNumber) => {
-    setPhoneNumber(fullNumber);
-    setStep("name");
+  const resetRecaptcha = () => {
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
+      window.recaptchaVerifier = null;
+    }
   };
 
-  const handleName = (nombre) => {
-    login(phoneNumber, nombre);
+const generarRecaptcha = () => {
+  if (window.recaptchaVerifier) {
+    try {
+      window.recaptchaVerifier.clear();
+    } catch (e) {
+      console.error("Error al limpiar recaptcha:", e);
+    }
+  }
+
+  window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+    size: "invisible",
+    "expired-callback": () => {
+      setError("El reCAPTCHA expiró, recarga la página.");
+    }
+  });
+};
+
+const handlePhoneSubmit = async (fullNumber) => {
+  const numeroLimpio = fullNumber.replace(/\D/g, "");
+  const numeroFinal = `+${numeroLimpio}`;
+
+  try {
+    setError("");
+    generarRecaptcha();
+    
+    const confirmation = await signInWithPhoneNumber(auth, numeroFinal, window.recaptchaVerifier);
+    setConfirmationResult(confirmation);
+    setPhoneNumber(numeroFinal);
+    setStep("code");
+  } catch (err) {
+    console.error("Error técnico:", err);
+    setError("Error al enviar: " + err.message);
+    resetRecaptcha();
+  }
+};
+
+  const handleCodeSubmit = async (code) => {
+    try {
+      setError("");
+      await confirmationResult.confirm(code);
+      setStep("name");
+    } catch {
+      setError("Código incorrecto");
+    }
   };
 
-  const STEPS = ["phone", "name"];
+  const handleNameSubmit = (nombre) => login(phoneNumber, nombre);
 
-  return (
-    <div style={{
-      display: "flex", height: "100vh", width: "100vw",
-      background: "var(--bg-base)", alignItems: "center", justifyContent: "center",
+  const goPhone = () => {
+    setConfirmationResult(null);
+    resetRecaptcha();
+    setStep("phone");
+  };
+
+  const goCode = () => setStep("code");
+
+return (
+  <div
+    style={{
+      display: "flex",
+      height: "100vh",
+      width: "100vw",
+      background: "var(--bg-base)",
+      alignItems: "center",
+      justifyContent: "center",
       fontFamily: "var(--font-body)",
-    }}>
-      <div style={{
-        position: "absolute", width: 420, height: 420,
-        background: "var(--accent)", opacity: 0.05,
-        filter: "blur(90px)", borderRadius: "50%",
-        top: "50%", left: "50%",
-        transform: "translate(-50%, -50%)", pointerEvents: "none",
-      }} />
+      position: "relative",
+      overflow: "hidden",
+    }}
+  >
+    <div id="recaptcha-container"></div>
 
-      <div style={{
-        width: "100%", maxWidth: 420, padding: "0 24px",
-        position: "relative", animation: "fadeUp 0.4s ease-out both",
-      }}>
-        <div style={{ marginBottom: 44, display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{
-            width: 36, height: 36, background: "var(--accent)", borderRadius: 10,
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke="var(--bg-base)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-          </div>
-          <span style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", fontWeight: 700, color: "var(--text-primary)" }}>
-            From<span style={{ color: "var(--accent)" }}>Chat</span>
-          </span>
+    <div
+      style={{
+        position: "absolute",
+        width: 420,
+        height: 420,
+        background: "var(--accent)",
+        opacity: 0.05,
+        filter: "blur(90px)",
+        borderRadius: "50%",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        pointerEvents: "none",
+      }}
+    />
+
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 420,
+        padding: "0 24px",
+        position: "relative",
+        animation: "fadeUp 0.4s ease-out both",
+      }}
+    >
+      <div
+        style={{
+          marginBottom: 44,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <div
+          style={{
+            width: 36,
+            height: 36,
+            background: "var(--accent)",
+            borderRadius: 10,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--bg-base)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
         </div>
 
-        <div style={{ display: "flex", gap: 6, marginBottom: 36 }}>
-          {STEPS.map((st, i) => (
-            <div key={st} style={{
-              height: 2, flex: 1,
-              background: STEPS.indexOf(step) >= i ? "var(--accent)" : "var(--border-strong)",
-              borderRadius: 2, transition: "background 0.4s",
-            }} />
-          ))}
-        </div>
+        <span
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "1.3rem",
+            fontWeight: 700,
+            color: "var(--text-primary)",
+          }}
+        >
+          From<span style={{ color: "var(--accent)" }}>Chat</span>
+        </span>
+      </div>
 
-        <div style={{ minHeight: 300 }}>
-          {step === "phone" && <PhoneInput onSubmit={handlePhone} />}
-          {step === "name"  && <NameInput onComplete={handleName} onBack={() => setStep("phone")} />}
+      <div style={{ display: "flex", gap: 6, marginBottom: 36 }}>
+        {["phone", "code", "name"].map((st, i) => (
+          <div
+            key={st}
+            style={{
+              height: 2,
+              flex: 1,
+              background:
+                ["phone", "code", "name"].indexOf(step) >= i
+                  ? "var(--accent)"
+                  : "var(--border-strong)",
+              borderRadius: 2,
+              transition: "background 0.4s",
+            }}
+          />
+        ))}
+      </div>
+
+      {error && (
+        <div
+          style={{
+            color: "#ff6b6b",
+            fontSize: "0.8rem",
+            marginBottom: 16,
+            textAlign: "center",
+            background: "rgba(255,107,107,0.1)",
+            padding: "10px",
+            borderRadius: 10,
+          }}
+        >
+          {error}
         </div>
+      )}
+
+      <div style={{ minHeight: 300 }}>
+        {step === "phone" && (
+          <PhoneInput onSubmit={handlePhoneSubmit} />
+        )}
+
+        {step === "code" && (
+          <CodeInput
+            onComplete={handleCodeSubmit}
+            onBack={goPhone}
+            phoneNumber={phoneNumber}
+          />
+        )}
+
+        {step === "name" && (
+          <NameInput
+            onComplete={handleNameSubmit}
+            onBack={goCode}
+          />
+        )}
       </div>
     </div>
-  );
+  </div>
+);
 }
