@@ -783,6 +783,12 @@
   --font-body:        'Inter', sans-serif;
 }
 
+@property --wave-size {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
 .chat-window {
   position: relative;
   overflow: hidden;
@@ -794,27 +800,41 @@
   position: absolute;
   inset: 0;
 
-  --wave-size: 0%;
-
-  background-image: radial-gradient(
-    circle at 50% 50%,
+  background: radial-gradient(
+    circle at center,
     var(--bg-base) var(--wave-size),
-    transparent calc(var(--wave-size) + 15%)
+    transparent calc(var(--wave-size) + 1%)
   );
-
-  transition: --wave-size 0.9s cubic-bezier(0.25, 1, 0.5, 1);
 
   pointer-events: none;
   z-index: 0;
 }
 
 [data-theme] .chat-window::before {
-  --wave-size: 160%;
+  animation: themeWave 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes themeWave {
+  from {
+    --wave-size: 0%;
+  }
+  to {
+    --wave-size: 160%;
+  }
 }
 
 .chat-window > * {
   position: relative;
   z-index: 1;
+}
+
+.sidebar,
+.input-field,
+.chat-window {
+  transition:
+    background-color 0.8s cubic-bezier(0.25,1,0.5,1),
+    border-color 0.8s cubic-bezier(0.25,1,0.5,1),
+    color 0.4s ease;
 }
 
 .bubble {
