@@ -7,7 +7,8 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import Groq from 'groq-sdk';
-
+import { createRequire } from 'module';
+dotenv.config({ path: new URL('../.env', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1') });
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
