@@ -783,14 +783,6 @@
   --font-body:        'Inter', sans-serif;
 }
 
-body {
-  font-family: var(--font-body);
-  background: var(--bg-base);
-  color: var(--text-primary);
-  height: 100dvh;
-  overflow: hidden;
-}
-
 .app {
   display: grid;
   grid-template-columns: 300px 1fr;
