@@ -17,7 +17,7 @@ import UploadProgress from "./componentes/UploadProgress";
 import UserProfilePanel from "./componentes/UserProfilePanel";
 import CallScreen from "./componentes/CallScreen";
 import { getMensajes, getConversaciones, clearChat } from "./api";
-import socket from "./socket";
+import socket from "./socket"; // Import de la API Socket.io
 
 const BOT_CHAT_ID  = "bot_nexus";
 const BOT_PHONE    = "+570000000000";
@@ -424,24 +424,24 @@ export default function ChatApp() {
   return (
     <div className="app">
       <CallScreen
-      callState={webrtc.callState}
-      callType={webrtc.callType}
-      remoteUser={webrtc.remoteUser}
-      isMuted={webrtc.isMuted}
-      isCamOff={webrtc.isCamOff}
-      callDuration={webrtc.callDuration}
-      formatDuration={webrtc.formatDuration}
-      localVideoRef={webrtc.localVideoRef}
-      remoteVideoRef={webrtc.remoteVideoRef}
-      remoteAudioRef={webrtc.remoteAudioRef}
-      attachRemoteStream={webrtc.attachRemoteStream}
-      onAccept={webrtc.acceptCall}
-      onReject={webrtc.rejectCall}
-      onHangUp={webrtc.hangUp}
-      onMute={webrtc.toggleMute}
-      onCam={webrtc.toggleCam}
-      CALL_STATE={webrtc.CALL_STATE}
-    />
+        callState={webrtc.callState}
+        callType={webrtc.callType}
+        remoteUser={webrtc.remoteUser}
+        isMuted={webrtc.isMuted}
+        isCamOff={webrtc.isCamOff}
+        callDuration={webrtc.callDuration}
+        formatDuration={webrtc.formatDuration}
+        localVideoRef={webrtc.localVideoRef}
+        remoteVideoRef={webrtc.remoteVideoRef}
+        remoteAudioRef={webrtc.remoteAudioRef}
+        attachRemoteStream={webrtc.attachRemoteStream}
+        CALL_STATE={webrtc.CALL_STATE}
+        onAccept={webrtc.acceptCall}
+        onReject={webrtc.rejectCall}
+        onHangUp={webrtc.hangUp} 
+        onMute={webrtc.toggleMute}
+        onCam={webrtc.toggleCam}
+      />
 
       {showAddModal && <AddContactModal myPhone={usuario.numero} myNombre={usuario.nombre} onAdd={handleAddContact} onClose={() => setShowAddModal(false)} />}
       {showProfile  && <UserProfilePanel onClose={() => setShowProfile(false)} />}

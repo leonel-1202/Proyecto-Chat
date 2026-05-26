@@ -34,11 +34,9 @@ export function useWebRTC({ usuario, chats }) {
   const timerRef          = useRef(null);
   const pendingCandidates = useRef([]);
   
-  // Clonamos el callState en una referencia para que los sockets mutables lo lean actualizado
   const callStateRef      = useRef(CALL_STATE.IDLE);
   const targetPhoneRef    = useRef(null);
 
-  // Mantener la referencia del estado al día
   useEffect(() => {
     callStateRef.current = callState;
   }, [callState]);
@@ -232,12 +230,10 @@ export function useWebRTC({ usuario, chats }) {
     setIsCamOff((v) => !v);
   }, []);
 
-  // ESCUCHADORES DE SOCKET: Se ejecutan UNA SOLA VEZ al montar el componente
   useEffect(() => {
     if (!usuario?.numero) return;
 
     const handleOffer = ({ from, nombre, type, offer }) => {
-      // Usamos callStateRef para saber el estado real y fresco
       if (callStateRef.current !== CALL_STATE.IDLE) {
         socket.emit("call_end", { to: from, from: usuario.numero, reason: "busy" });
         return;
@@ -295,7 +291,7 @@ export function useWebRTC({ usuario, chats }) {
       socket.off("call_ice_candidate", handleIceCandidate);
       socket.off("call_end", handleCallEnd);
     };
-  }, [usuario?.numero, chats, cleanup, attachRemoteStream]); // Quitado callState de aquí
+  }, [usuario?.numero, chats, cleanup, attachRemoteStream]);
 
   return {
     callState, callType, remoteUser,
