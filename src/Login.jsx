@@ -375,19 +375,24 @@ export default function Login() {
     return () => clearRecaptcha();
   }, []);
 
-  const clearRecaptcha = () => {
-    if (window.recaptchaVerifier) {
-      try {
-        window.recaptchaVerifier.clear();
-      } catch (e) {
-        console.warn("Error limpiando reCAPTCHA:", e);
-      } finally {
-        window.recaptchaVerifier = null;
-      }
+const clearRecaptcha = () => {
+  if (window.recaptchaVerifier) {
+    try {
+      window.recaptchaVerifier.clear();
+    } catch (e) {
+      console.warn("Error limpiando reCAPTCHA:", e);
+    } finally {
+      window.recaptchaVerifier = null;
     }
-    const container = document.getElementById("recaptcha-container");
-    if (container) container.innerHTML = "";
-  };
+  }
+  const container = document.getElementById("recaptcha-container");
+  if (container) {
+    const parent = container.parentNode;
+    const newDiv = document.createElement("div");
+    newDiv.id = "recaptcha-container";
+    parent.replaceChild(newDiv, container);
+  }
+};
 
   const initRecaptcha = async () => {
     clearRecaptcha();
