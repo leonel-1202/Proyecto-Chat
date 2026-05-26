@@ -783,29 +783,12 @@
   --font-body:        'Inter', sans-serif;
 }
 
-@property --wave-size {
-  syntax: '<percentage>';
-  inherits: true;
-  initial-value: 0%;
-}
-
 body {
   font-family: var(--font-body);
+  background: var(--bg-base);
   color: var(--text-primary);
   height: 100dvh;
-  position: relative;
   overflow: hidden;
-  background-image: radial-gradient(
-    circle at 50% 50%, 
-    var(--bg-base) var(--wave-size), 
-    transparent calc(var(--wave-size) + 15%)
-  );
-  background-color: var(--bg-base);
-}
-
-[data-theme] {
-  transition: --wave-size 0.9s cubic-bezier(0.25, 1, 0.5, 1);
-  --wave-size: 160%;
 }
 
 .app {
@@ -813,7 +796,7 @@ body {
   grid-template-columns: 300px 1fr;
   height: 100dvh;
   overflow: hidden;
-  background: transparent;
+  background: transparent !important;
 }
 
 .chat-window {
@@ -821,10 +804,10 @@ body {
     circle at 50% 50%, 
     var(--bg-base) var(--wave-size), 
     transparent calc(var(--wave-size) + 15%)
-  );
+  ) !important;
+  background-color: var(--bg-base) !important;
 }
 
-body,
 .sidebar, 
 .chat-window, 
 .input-field,
@@ -833,12 +816,6 @@ body,
     background-color 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.1s,
     border-color 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.1s,
     color 0.4s ease;
-}
-
-.bubble {
-  transition: 
-    background-color 0.6s cubic-bezier(0.25, 1, 0.5, 1) 0.2s,
-    color 0.3s ease;
 }
 
 @keyframes fadeUp {
@@ -854,6 +831,13 @@ body,
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.3; }
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .sidebar {
