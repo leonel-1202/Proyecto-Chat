@@ -208,7 +208,6 @@ export default function ChatApp() {
   const stopTypingTimer = useRef();
   const msgRefs         = useRef({});
 
-  // ── WebRTC ──────────────────────────────────────────────────────────────────
   const webrtc = useWebRTC({ usuario, chats });
 
   const chat          = chats.find((c) => c.id === selectedId);
@@ -425,22 +424,24 @@ export default function ChatApp() {
   return (
     <div className="app">
       <CallScreen
-        callState={webrtc.callState}
-        callType={webrtc.callType}
-        remoteUser={webrtc.remoteUser}
-        isMuted={webrtc.isMuted}
-        isCamOff={webrtc.isCamOff}
-        callDuration={webrtc.callDuration}
-        formatDuration={webrtc.formatDuration}
-        localVideoRef={webrtc.localVideoRef}
-        remoteVideoRef={webrtc.remoteVideoRef}
-        onAccept={webrtc.acceptCall}
-        onReject={webrtc.rejectCall}
-        onHangUp={webrtc.hangUp}
-        onMute={webrtc.toggleMute}
-        onCam={webrtc.toggleCam}
-        CALL_STATE={webrtc.CALL_STATE}
-      />
+      callState={webrtc.callState}
+      callType={webrtc.callType}
+      remoteUser={webrtc.remoteUser}
+      isMuted={webrtc.isMuted}
+      isCamOff={webrtc.isCamOff}
+      callDuration={webrtc.callDuration}
+      formatDuration={webrtc.formatDuration}
+      localVideoRef={webrtc.localVideoRef}
+      remoteVideoRef={webrtc.remoteVideoRef}
+      remoteAudioRef={webrtc.remoteAudioRef}
+      attachRemoteStream={webrtc.attachRemoteStream}
+      onAccept={webrtc.acceptCall}
+      onReject={webrtc.rejectCall}
+      onHangUp={webrtc.hangUp}
+      onMute={webrtc.toggleMute}
+      onCam={webrtc.toggleCam}
+      CALL_STATE={webrtc.CALL_STATE}
+    />
 
       {showAddModal && <AddContactModal myPhone={usuario.numero} myNombre={usuario.nombre} onAdd={handleAddContact} onClose={() => setShowAddModal(false)} />}
       {showProfile  && <UserProfilePanel onClose={() => setShowProfile(false)} />}
