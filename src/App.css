@@ -800,18 +800,19 @@
   position: absolute;
   inset: 0;
 
-  background: radial-gradient(
-    circle at center,
-    var(--bg-base) var(--wave-size),
-    transparent calc(var(--wave-size) + 1%)
-  );
+background: radial-gradient(
+  circle at center,
+  var(--bg-base) var(--wave-size),
+  rgba(255,255,255,.15) calc(var(--wave-size) + 3%),
+  transparent calc(var(--wave-size) + 8%)
+);
 
   pointer-events: none;
   z-index: 0;
 }
 
 [data-theme] .chat-window::before {
-  animation: themeWave 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: themeWave 1.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes themeWave {
