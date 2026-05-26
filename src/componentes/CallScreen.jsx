@@ -120,7 +120,16 @@ function CallingBanner({ remoteUser, callType, onHangUp }) {
         <div style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 600, color: "white", marginBottom: 6 }}>{remoteUser.nombre}</div>
         <div style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.45)" }}>Llamando…</div>
       </div>
-      <CallBtn onClick={onHangUp} color="#f43f5e" size={60}><Hang /></CallBtn>
+      <CallBtn
+      onClick={() => {
+        console.log("Clic en colgar (saliente)");
+        onHangUp?.();
+      }}
+      color="#f43f5e"
+      size={60}
+    >
+      <Hang />
+    </CallBtn>
     </div>
   );
 }
@@ -147,7 +156,16 @@ function AudioCall({ remoteUser, remoteAudioRef, isMuted, duration, onMute, onHa
           <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>{isMuted ? "Activar" : "Silenciar"}</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-          <CallBtn onClick={onHangUp} color="#f43f5e" size={64}><Hang /></CallBtn>
+          <CallBtn
+            onClick={() => {
+              console.log("Clic en colgar (audio activo)");
+              onHangUp?.();
+            }}
+            color="#f43f5e"
+            size={64}
+          >
+            <Hang />
+          </CallBtn>
           <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>Colgar</span>
         </div>
       </div>
@@ -183,7 +201,16 @@ function VideoCall({ remoteUser, localVideoRef, remoteVideoRef, isMuted, isCamOf
         <CallBtn onClick={onMute} color={isMuted ? "var(--accent)" : "rgba(255,255,255,0.2)"} size={52}>
           {isMuted ? <MicOff /> : <MicOn />}
         </CallBtn>
-        <CallBtn onClick={onHangUp} color="#f43f5e" size={60}><Hang /></CallBtn>
+        <CallBtn
+          onClick={() => {
+            console.log("Clic en colgar (video activo)");
+            onHangUp?.();
+          }}
+          color="#f43f5e"
+          size={60}
+        >
+          <Hang />
+        </CallBtn>
         <CallBtn onClick={onCam} color={isCamOff ? "var(--accent)" : "rgba(255,255,255,0.2)"} size={52}>
           {isCamOff ? <CamOff /> : <CamOn />}
         </CallBtn>
