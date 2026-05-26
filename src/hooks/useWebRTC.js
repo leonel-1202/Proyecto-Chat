@@ -59,26 +59,25 @@ export function useWebRTC({ usuario, chats }) {
     }
   }, []);
 
-  const cleanup = useCallback(() => {
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach((t) => t.stop());
-      localStreamRef.current = null;
-    }
-    if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
-    remoteStreamRef.current = null;
-    pendingCandidates.current = [];
-    targetPhoneRef.current = null;
-    stopTimer();
-    setCallState(CALL_STATE.IDLE);
-    setCallType(null);
-    setRemoteUser(null);
-    setIncomingOffer(null);
-    setIsMuted(false);
-    setIsCamOff(false);
-    if (localVideoRef.current)  localVideoRef.current.srcObject  = null;
-    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
-    if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null;
-  }, []);
+const cleanup = useCallback(() => {
+  localStreamRef.current?.getTracks().forEach((t) => t.stop());
+  localStreamRef.current  = null;
+  remoteStreamRef.current = null;
+  pcRef.current?.close();
+  pcRef.current           = null;
+  targetPhoneRef.current  = null;
+  pendingCandidates.current = [];
+  stopTimer();
+  try { if (localVideoRef.current)  localVideoRef.current.srcObject  = null; } catch {}
+  try { if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null; } catch {}
+  try { if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null; } catch {}
+  setCallState(CALL_STATE.IDLE);
+  setCallType(null);
+  setRemoteUser(null);
+  setIncomingOffer(null);
+  setIsMuted(false);
+  setIsCamOff(false);
+}, []);
 
   const createPC = useCallback((targetPhone) => {
     const pc = new RTCPeerConnection(ICE_SERVERS);
@@ -179,16 +178,13 @@ export function useWebRTC({ usuario, chats }) {
     }
   }, [incomingOffer, callState, usuario, createPC, cleanup]);
 
-  const hangUp = useCallback((reason = "hangup") => {
-    const target = targetPhoneRef.current
-      || remoteUser?.phone
-      || incomingOffer?.from;
-
-    if (target) {
-      socket.emit("call_end", { to: target, from: usuario.numero, reason });
-    }
-    cleanup();
-  }, [remoteUser, incomingOffer, usuario, cleanup]);
+const hangUp = useCallback((reason = "hangup") => {
+  const target = targetPhoneRef.current;
+  if (target) {
+    socket.emit("call_end", { to: target, from: usuario.numero, reason });
+  }
+  cleanup();
+}, [usuario.numero, cleanup]);
 
   const rejectCall = useCallback(() => {
     const from = incomingOffer?.from;
@@ -236,7 +232,6 @@ export function useWebRTC({ usuario, chats }) {
         pendingCandidates.current = [];
         setCallState(CALL_STATE.ACTIVE);
         startTimer();
-        // FIX 3: intentar adjuntar stream remoto ahora que el estado cambió
         setTimeout(attachRemoteStream, 100);
       } catch (err) { console.error("Error en call_answer:", err); cleanup(); }
     });
