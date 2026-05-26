@@ -229,7 +229,7 @@ function PhoneInput({ onSubmit, loading }) {
   );
 }
 
-function CodeInput({ onComplete, onBack, phoneNumber, loading }) {
+function CodeInput({ onComplete, onBack, phoneNumber, loading, cooldown, onResend }) {
   const [code, setCode] = useState("");
   const canSubmit = code.trim().length === 6 && !loading;
 
@@ -269,6 +269,20 @@ function CodeInput({ onComplete, onBack, phoneNumber, loading }) {
             <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
           </svg>
         )}
+      </button>
+
+      <button
+        onClick={onResend}
+        disabled={cooldown > 0 || loading}
+        style={{
+          background: "none", border: "none",
+          cursor: cooldown > 0 || loading ? "default" : "pointer",
+          color: cooldown > 0 || loading ? "var(--text-meta)" : "var(--accent-dim)",
+          fontSize: "0.8rem", fontFamily: "var(--font-body)",
+          padding: 0, textAlign: "center", transition: "color 0.2s",
+        }}
+      >
+        {cooldown > 0 ? `Reenviar código en ${cooldown}s` : "Reenviar código"}
       </button>
 
       <button
@@ -355,46 +369,45 @@ export default function Login() {
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [error,              setError]              = useState("");
   const [loading,            setLoading]            = useState(false);
+  const [cooldown,           setCooldown]           = useState(0);
 
   useEffect(() => {
     return () => clearRecaptcha();
   }, []);
 
-const clearRecaptcha = () => {
-  if (window.recaptchaVerifier) {
-    try {
-      window.recaptchaVerifier.clear();
-    } catch (e) {
-      console.warn("Error limpiando reCAPTCHA:", e);
-    } finally {
-      window.recaptchaVerifier = null;
+  const clearRecaptcha = () => {
+    if (window.recaptchaVerifier) {
+      try {
+        window.recaptchaVerifier.clear();
+      } catch (e) {
+        console.warn("Error limpiando reCAPTCHA:", e);
+      } finally {
+        window.recaptchaVerifier = null;
+      }
     }
-  }
-  const container = document.getElementById("recaptcha-container");
-  if (container) container.innerHTML = "";
-};
+    const container = document.getElementById("recaptcha-container");
+    if (container) container.innerHTML = "";
+  };
 
-const initRecaptcha = async () => {
-  clearRecaptcha();
+  const initRecaptcha = async () => {
+    clearRecaptcha();
 
-  window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-    size: import.meta.env.DEV ? "normal" : "invisible",
-    "expired-callback": () => {
-      setError("El reCAPTCHA expiró, intenta de nuevo.");
-      clearRecaptcha();
-    },
-  });
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+      size: import.meta.env.DEV ? "normal" : "invisible",
+      "expired-callback": () => {
+        setError("El reCAPTCHA expiró, intenta de nuevo.");
+        clearRecaptcha();
+      },
+    });
 
-  await window.recaptchaVerifier.render();
-};
+    await window.recaptchaVerifier.render();
+  };
 
   const handlePhoneSubmit = async (fullNumber) => {
     const numeroLimpio = `+${fullNumber.replace(/\D/g, "")}`;
-
     try {
       setError("");
       setLoading(true);
-
       await initRecaptcha();
 
       const confirmation = await signInWithPhoneNumber(
@@ -406,6 +419,15 @@ const initRecaptcha = async () => {
       setConfirmationResult(confirmation);
       setPhoneNumber(numeroLimpio);
       setStep("code");
+
+      setCooldown(60);
+      const timer = setInterval(() => {
+        setCooldown((c) => {
+          if (c <= 1) { clearInterval(timer); return 0; }
+          return c - 1;
+        });
+      }, 1000);
+
     } catch (err) {
       console.error("Firebase Auth error:", err);
       setError(friendlyError(err.code));
@@ -421,7 +443,6 @@ const initRecaptcha = async () => {
       setStep("phone");
       return;
     }
-
     try {
       setError("");
       setLoading(true);
@@ -441,6 +462,7 @@ const initRecaptcha = async () => {
     setConfirmationResult(null);
     setPhoneNumber("");
     setError("");
+    setCooldown(0);
     clearRecaptcha();
     setStep("phone");
   };
@@ -555,6 +577,8 @@ const initRecaptcha = async () => {
               onBack={goPhone}
               phoneNumber={phoneNumber}
               loading={loading}
+              cooldown={cooldown}
+              onResend={() => handlePhoneSubmit(phoneNumber)}
             />
           )}
           {step === "name" && (
@@ -568,12 +592,12 @@ const initRecaptcha = async () => {
 
 function friendlyError(code) {
   const map = {
-    "auth/invalid-phone-number":       "Número de teléfono inválido.",
-    "auth/too-many-requests":          "Demasiados intentos. Espera un momento.",
-    "auth/quota-exceeded":             "Límite de SMS alcanzado. Intenta más tarde.",
-    "auth/captcha-check-failed":       "Falló la verificación de reCAPTCHA.",
-    "auth/missing-phone-number":       "Debes ingresar un número de teléfono.",
-    "auth/network-request-failed":     "Sin conexión. Verifica tu internet.",
+    "auth/invalid-phone-number":   "Número de teléfono inválido.",
+    "auth/too-many-requests":      "Demasiados intentos. Espera un momento.",
+    "auth/quota-exceeded":         "Límite de SMS alcanzado. Intenta más tarde.",
+    "auth/captcha-check-failed":   "Falló la verificación de reCAPTCHA.",
+    "auth/missing-phone-number":   "Debes ingresar un número de teléfono.",
+    "auth/network-request-failed": "Sin conexión. Verifica tu internet.",
   };
   return map[code] ?? `Error inesperado (${code ?? "desconocido"}).`;
 }
