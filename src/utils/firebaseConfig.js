@@ -14,13 +14,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-initializeAppCheck(app, {
-  provider: new ReCaptchaEnterpriseProvider(
-    import.meta.env.VITE_RECAPTCHA_KEY
-  ),
-  isTokenAutoRefreshEnabled: true,
-});
-
 export const auth = getAuth(app);
 auth.languageCode = "es";
 auth.settings.appVerificationDisabledForTesting = false;

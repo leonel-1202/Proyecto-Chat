@@ -394,19 +394,17 @@ const clearRecaptcha = () => {
   }
 };
 
-  const initRecaptcha = async () => {
-    clearRecaptcha();
-
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-      size: import.meta.env.DEV ? "normal" : "invisible",
-      "expired-callback": () => {
-        setError("El reCAPTCHA expiró, intenta de nuevo.");
-        clearRecaptcha();
-      },
-    });
-
-    await window.recaptchaVerifier.render();
-  };
+const initRecaptcha = async () => {
+  clearRecaptcha();
+  window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+    size: "invisible",
+    "expired-callback": () => {
+      setError("El reCAPTCHA expiró, intenta de nuevo.");
+      clearRecaptcha();
+    },
+  });
+  await window.recaptchaVerifier.render();
+};
 
   const handlePhoneSubmit = async (fullNumber) => {
     const numeroLimpio = `+${fullNumber.replace(/\D/g, "")}`;
