@@ -7,9 +7,12 @@ const firebaseConfig = {
   projectId: "nexus-web-a4123",
   storageBucket: "nexus-web-a4123.firebasestorage.app",
   messagingSenderId: "1010374713756",
-  appId: "1:1010374713756:web:471927c501d8cb84d32859"
+  appId: "1:1010374713756:web:471927c501d8cb84d32859",
 };
 
-const app = initializeApp(firebaseConfig);
+const app  = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-auth.languageCode = 'es';
+
+auth.languageCode = "es";
+
+auth.settings.appVerificationDisabledForTesting = false;
