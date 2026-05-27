@@ -8,7 +8,8 @@ const firebaseConfig = {
   projectId: "nexus-web-a4123",
   storageBucket: "nexus-web-a4123.firebasestorage.app",
   messagingSenderId: "1010374713756",
-  appId: "1:1010374713756:web:471927c501d8cb84d32859"
+  appId: "1:1010374713756:web:471927c501d8cb84d32859",
+  measurementId:     "G-SR2WVCTLGS",
 };
 
 const app = initializeApp(firebaseConfig);
