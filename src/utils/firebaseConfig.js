@@ -1,26 +1,17 @@
 import { initializeApp } from "firebase/app";
-import { getAuth }       from "firebase/auth";
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyAZdcW4g9apX8NtfG5EHSsRtwC4ogg0BEs",
-  authDomain:        "nexus-1f56f.firebaseapp.com",
-  projectId:         "nexus-1f56f",
-  storageBucket:     "nexus-1f56f.firebasestorage.app",
-  messagingSenderId: "925466332795",
-  appId:             "1:925466332795:web:71cce1c5bb8f48d7459cde",
-  measurementId:     "G-SR2WVCTLGS",
+  apiKey: "AIzaSyDeu4tFPDHNf44DpCgtvxGcqi3Urb0Wasc",
+  authDomain: "nexus-web-a4123.firebaseapp.com",
+  projectId: "nexus-web-a4123",
+  storageBucket: "nexus-web-a4123.firebasestorage.app",
+  messagingSenderId: "1010374713756",
+  appId: "1:1010374713756:web:471927c501d8cb84d32859"
 };
 
-const app = initializeApp(firebaseConfig);
-
-initializeAppCheck(app, {
-  provider: new ReCaptchaEnterpriseProvider(
-    import.meta.env.VITE_RECAPTCHA_KEY
-  ),
-  isTokenAutoRefreshEnabled: true,
-});
-
-export const auth = getAuth(app);
-auth.languageCode = "es";
 auth.settings.appVerificationDisabledForTesting = false;
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+auth.languageCode = 'es';
