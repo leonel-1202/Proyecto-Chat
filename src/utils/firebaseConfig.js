@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeAuth, browserPopupRedirectResolver } from "firebase/auth"; // CAMBIO: Usaremos initializeAuth nativo
 
 const firebaseConfig = {
   apiKey: "AIzaSyAZdcW4g9apX8NtfG5EHSsRtwC4ogg0BEs",
@@ -11,8 +11,12 @@ const firebaseConfig = {
   measurementId: "G-SR2WVCTLGS"
 };
 
-const app  = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+const app = initializeApp(firebaseConfig);
+
+// SOLUCIÓN: Forzamos una inicialización limpia aislando los solucionadores de redirección del navegador
+export const auth = initializeAuth(app, {
+  popupRedirectResolver: browserPopupRedirectResolver
+});
 
 auth.languageCode = "es";
 auth.settings.appVerificationDisabledForTesting = false;
