@@ -372,10 +372,11 @@ export default function Login() {
   const [cooldown,           setCooldown]           = useState(0);
 
   useEffect(() => {
-    return () => clearRecaptcha();
+    initRecaptcha();
+    return () => resetRecaptcha();
   }, []);
 
-  const clearRecaptcha = () => {
+  const resetRecaptcha = () => {
     if (window.recaptchaVerifier) {
       try {
         window.recaptchaVerifier.clear();
@@ -385,29 +386,19 @@ export default function Login() {
         window.recaptchaVerifier = null;
       }
     }
-    const container = document.getElementById("recaptcha-container");
-    if (container) {
-      const parent = container.parentNode;
-      const newDiv = document.createElement("div");
-      newDiv.id = "recaptcha-container";
-      parent.replaceChild(newDiv, container);
-    }
   };
 
-  const initRecaptcha = async () => {
-    clearRecaptcha();
-
+  const initRecaptcha = () => {
+    resetRecaptcha();
+    
+    // Inicialización limpia apuntando al elemento estático del DOM
     window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-      // ── CAMBIO CLAVE: siempre "invisible" ─────────────────────────────────
-      // El modo "normal" en DEV causaba conflicto con reCAPTCHA Enterprise
       size: "invisible",
       "expired-callback": () => {
         setError("El reCAPTCHA expiró, intenta de nuevo.");
-        clearRecaptcha();
+        initRecaptcha();
       },
     });
-
-    await window.recaptchaVerifier.render();
   };
 
   const handlePhoneSubmit = async (fullNumber) => {
@@ -415,7 +406,11 @@ export default function Login() {
     try {
       setError("");
       setLoading(true);
-      await initRecaptcha();
+
+      // Si por algún motivo la instancia se perdió, la recreamos de forma segura
+      if (!window.recaptchaVerifier) {
+        initRecaptcha();
+      }
 
       const confirmation = await signInWithPhoneNumber(
         auth,
@@ -438,7 +433,7 @@ export default function Login() {
     } catch (err) {
       console.error("Firebase Auth error:", err);
       setError(friendlyError(err.code));
-      clearRecaptcha();
+      initRecaptcha(); // Forzamos un reset limpio tras un fallo de red o token inválido
     } finally {
       setLoading(false);
     }
@@ -470,7 +465,7 @@ export default function Login() {
     setPhoneNumber("");
     setError("");
     setCooldown(0);
-    clearRecaptcha();
+    initRecaptcha();
     setStep("phone");
   };
 
@@ -497,6 +492,7 @@ export default function Login() {
         overflow: "hidden",
       }}
     >
+      {/* Contenedor estático e inmutable del reCAPTCHA */}
       <div id="recaptcha-container" />
 
       <div
@@ -537,7 +533,7 @@ export default function Login() {
             </svg>
           </div>
           <span style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", fontWeight: 700, color: "var(--text-primary)" }}>
-            Nexus<span style={{ color: "var(--accent)" }}></span>
+            Nexus
           </span>
         </div>
 
