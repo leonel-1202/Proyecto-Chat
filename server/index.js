@@ -7,9 +7,10 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import Groq from 'groq-sdk';
-import { createRequire } from 'module';
+
+// ── CAMBIO: una sola llamada a dotenv con path explícito hacia la raíz ────────
+// Antes había dos dotenv.config() que se pisaban entre sí
 dotenv.config({ path: new URL('../.env', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1') });
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -74,7 +75,6 @@ async function obtenerRespuestaInteligente(mensajeUsuario) {
 }
 
 const connectedUsers = new Map();
-
 const horaActual = () =>
   new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 
@@ -169,10 +169,8 @@ io.on('connection', (socket) => {
         },
         { upsert: true, returnDocument: 'after' }
       );
-
       socket.join(`chat_${chatId}`);
       socket.emit('conversation_ready', conv);
-
       const theirSocketId = connectedUsers.get(theirPhone);
       if (theirSocketId) {
         const theirSocket = io.sockets.sockets.get(theirSocketId);

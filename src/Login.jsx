@@ -375,36 +375,40 @@ export default function Login() {
     return () => clearRecaptcha();
   }, []);
 
-const clearRecaptcha = () => {
-  if (window.recaptchaVerifier) {
-    try {
-      window.recaptchaVerifier.clear();
-    } catch (e) {
-      console.warn("Error limpiando reCAPTCHA:", e);
-    } finally {
-      window.recaptchaVerifier = null;
+  const clearRecaptcha = () => {
+    if (window.recaptchaVerifier) {
+      try {
+        window.recaptchaVerifier.clear();
+      } catch (e) {
+        console.warn("Error limpiando reCAPTCHA:", e);
+      } finally {
+        window.recaptchaVerifier = null;
+      }
     }
-  }
-  const container = document.getElementById("recaptcha-container");
-  if (container) {
-    const parent = container.parentNode;
-    const newDiv = document.createElement("div");
-    newDiv.id = "recaptcha-container";
-    parent.replaceChild(newDiv, container);
-  }
-};
+    const container = document.getElementById("recaptcha-container");
+    if (container) {
+      const parent = container.parentNode;
+      const newDiv = document.createElement("div");
+      newDiv.id = "recaptcha-container";
+      parent.replaceChild(newDiv, container);
+    }
+  };
 
-const initRecaptcha = async () => {
-  clearRecaptcha();
-  window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-    size: "invisible",
-    "expired-callback": () => {
-      setError("El reCAPTCHA expiró, intenta de nuevo.");
-      clearRecaptcha();
-    },
-  });
-  await window.recaptchaVerifier.render();
-};
+  const initRecaptcha = async () => {
+    clearRecaptcha();
+
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+      // ── CAMBIO CLAVE: siempre "invisible" ─────────────────────────────────
+      // El modo "normal" en DEV causaba conflicto con reCAPTCHA Enterprise
+      size: "invisible",
+      "expired-callback": () => {
+        setError("El reCAPTCHA expiró, intenta de nuevo.");
+        clearRecaptcha();
+      },
+    });
+
+    await window.recaptchaVerifier.render();
+  };
 
   const handlePhoneSubmit = async (fullNumber) => {
     const numeroLimpio = `+${fullNumber.replace(/\D/g, "")}`;
@@ -595,12 +599,14 @@ const initRecaptcha = async () => {
 
 function friendlyError(code) {
   const map = {
-    "auth/invalid-phone-number":   "Número de teléfono inválido.",
-    "auth/too-many-requests":      "Demasiados intentos. Espera un momento.",
-    "auth/quota-exceeded":         "Límite de SMS alcanzado. Intenta más tarde.",
-    "auth/captcha-check-failed":   "Falló la verificación de reCAPTCHA.",
-    "auth/missing-phone-number":   "Debes ingresar un número de teléfono.",
-    "auth/network-request-failed": "Sin conexión. Verifica tu internet.",
+    "auth/invalid-phone-number":    "Número de teléfono inválido.",
+    "auth/too-many-requests":       "Demasiados intentos. Espera un momento.",
+    "auth/quota-exceeded":          "Límite de SMS alcanzado. Intenta más tarde.",
+    "auth/captcha-check-failed":    "Falló la verificación de reCAPTCHA.",
+    "auth/missing-phone-number":    "Debes ingresar un número de teléfono.",
+    "auth/network-request-failed":  "Sin conexión. Verifica tu internet.",
+    "auth/invalid-app-credential":  "Configuración de Firebase incorrecta.",
+    "auth/web-storage-unsupported": "Tu navegador no soporta esta función. Prueba con Chrome.",
   };
   return map[code] ?? `Error inesperado (${code ?? "desconocido"}).`;
 }
